@@ -16,9 +16,9 @@ const day = (n) => { const d = new Date(Date.now() + n * 864e5); return d.toISOS
   const reg = await (await fetch(`${BASE}/api/auth/register`, { method: 'POST', headers: H, body: JSON.stringify({ name: 'Mia', email, password: 'supergeheim', timeZone: 'Europe/Vienna', locale: LOC }) })).json();
   if (!reg.token) { console.log('register failed', JSON.stringify(reg)); process.exit(1); }
   const A = { ...H, authorization: `Bearer ${reg.token}` };
-  await fetch(`${BASE}/api/profile`, { method: 'PUT', headers: A, body: JSON.stringify({ situation: process.env.SITUATION || 'school', features: ['planner', 'homework', 'mails', 'goals', 'health'] }) });
+  if (!process.env.NOPROFILE) await fetch(`${BASE}/api/profile`, { method: 'PUT', headers: A, body: JSON.stringify({ situation: process.env.SITUATION || 'school', features: ['planner', 'homework', 'mails', 'goals', 'health'] }) });
   await fetch(`${BASE}/api/settings`, { method: 'PATCH', headers: A, body: JSON.stringify({ locale: LOC }) });
-  for (const text of (process.env.SEED || 'Latein HÜ S. 45 Nr. 3 Freitag|Mathe SA in 9 tagen|Französisch HÜ S. 12 morgen|Bio Referat in 5 tagen').split('|')) {
+  if (!process.env.NOPROFILE) for (const text of (process.env.SEED || 'Latein HÜ S. 45 Nr. 3 Freitag|Mathe SA in 9 tagen|Französisch HÜ S. 12 morgen|Bio Referat in 5 tagen').split('|')) {
     await fetch(`${BASE}/api/chat`, { method: 'POST', headers: A, body: JSON.stringify({ text }) });
   }
   const me = await (await fetch(`${BASE}/api/me`, { headers: A })).json();
