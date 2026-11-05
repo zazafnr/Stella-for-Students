@@ -20,5 +20,12 @@
  "planner.subjects": "Przedmioty",
  "planner.allSubjects": "Wszystkie przedmioty",
  "today.todayAtSchool": "Dziś w szkole",
- "students.welcome.examples": "Rozumiem też zadania i sprawdziany: „Zadanie z łaciny s. 45 nr 3 piątek” albo „Sprawdzian z matmy 12.11.”."
+ "students.welcome.examples": "Rozumiem też zadania i sprawdziany: „Zadanie z łaciny s. 45 nr 3 piątek” albo „Sprawdzian z matmy 12.11.”.",
+ "plan.f.flashcards": "Zestawy fiszek miesięcznie",
+ "plan.f.notes": "Notatki ze zdjęć miesięcznie",
+ "students.hint.cancelled": "{subject} o {time} jutro jest odwołane.",
+ "students.hint.register": "Zapisy na {title} kończą się {when}.",
+ "students.hint.assignment": "{title} trzeba oddać {when}, a nie masz zaplanowanej nauki.",
+ "students.hint.assignment.open": "Zaplanuj naukę",
+ "students.assignment.inAWeek": "{title} trzeba oddać za tydzień."
 }

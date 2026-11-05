@@ -12,7 +12,7 @@ import { config } from './config.ts';
 import { addAttachment, addMessage, addReminder, createItem, db, enqueueJob, getItem, getItemByExternalId, getUser, listItems, newId, notifyOnce, now, updateItem, updateUserSettings } from './db.ts';
 import { perform, record, levelFor } from './actions.ts';
 import { complete } from './llm.ts';
-import { tr, userLocale, userTerms, voiceOf } from './locale.ts';
+import { dayFor, tr, userLocale, userTerms, voiceOf } from './locale.ts';
 import { pushToUser } from './push.ts';
 import { mailerConfigured, sendTemplateMail } from './mailer.ts';
 import { filePath, saveFile } from './files.ts';
@@ -49,7 +49,7 @@ export const pluginApi = {
   complete,
   getSecret, setSecret, hasSecret, deleteSecret, requireOwner,
   /** Sprache, Begriffe und Ton der Nutzerin */
-  userLocale, userTerms, voiceOf,
+  userLocale, userTerms, voiceOf, dayFor,
   pushToUser, mailerConfigured, sendTemplateMail,
   saveFile, filePath,
   /** Abo-Kontingent und Modellwahl (Profi-Aufgaben) */

@@ -18,5 +18,12 @@
  "planner.subjects": "Dersler",
  "planner.allSubjects": "Tüm dersler",
  "today.todayAtSchool": "Bugün okulda",
- "students.welcome.examples": "Ödev ve sınavları da anlarım: \"Latince ödevi s. 45 no. 3 cuma\" ya da \"Matematik sınavı 12.11.\"."
+ "students.welcome.examples": "Ödev ve sınavları da anlarım: \"Latince ödevi s. 45 no. 3 cuma\" ya da \"Matematik sınavı 12.11.\".",
+ "plan.f.flashcards": "Aylık bilgi kartı seti",
+ "plan.f.notes": "Aylık fotoğraftan not",
+ "students.hint.cancelled": "Yarın saat {time} için {subject} iptal edildi.",
+ "students.hint.register": "{title} kaydı {when} sona eriyor.",
+ "students.hint.assignment": "{title} {when} teslim edilecek ve planlanmış bir çalışma bloğun yok.",
+ "students.hint.assignment.open": "Çalışma bloğu planla",
+ "students.assignment.inAWeek": "{title} bir hafta sonra teslim."
 }

@@ -16,10 +16,15 @@ import { solveHomework } from './homework.ts';
 import { saveFile } from './runtime.ts';
 import { SCHOOL_PARSER } from './parser-words.ts';
 import { STUDENTS_CATALOG, STUDENTS_OVERRIDES } from './catalog.ts';
+import { UNI_MIGRATIONS } from './uni/migrations.ts';
+import { registerUniRoutes } from './uni/routes.ts';
+import { gradeSummary, uniHints, uniReminders } from './uni/hooks.ts';
+import { hasFeed, icsLessons, refreshTimetable } from './uni/uni.ts';
 
 const str = (v: unknown, max = 4000) => (typeof v === 'string' ? v.slice(0, max) : '');
 
 function registerSchoolRoutes(api: FastifyInstance) {
+  registerUniRoutes(api);
   // ----- Schulbücher (digi4school, scook) -----
   const provider = (p: string): BookProvider => {
     if (!(p in PROVIDERS)) throw new HttpError(404, 'Unbekannter Anbieter');
@@ -182,6 +187,13 @@ const TOOLS: NonNullable<EditionPlugin['tools']> = [
   {
     def: {
       type: 'function',
+      function: { name: 'grade_average', description: 'Notenschnitt des Nutzers (nach ECTS gewichtet), insgesamt und je Kurs. Für „Wie steht mein Schnitt?“. Keine Prognosen nennen.', parameters: { type: 'object', properties: {} } },
+    },
+    run: (ctx) => gradeSummary(ctx.user),
+  },
+  {
+    def: {
+      type: 'function',
       function: {
         name: 'solve_homework',
         description: 'HÜ automatisch lösen und in Handschrift ins Heft schreiben (braucht Buchseite oder Foto der Aufgabe). again=true löst eine schon gelöste HÜ neu (z. B. "nochmal lösen", "Lösung ist falsch").',
@@ -202,7 +214,7 @@ const TOOLS: NonNullable<EditionPlugin['tools']> = [
   },
 ];
 
-const hasNoTimetable = (userId: string) => !(db.prepare('SELECT 1 FROM lessons WHERE user_id = ? LIMIT 1').get(userId));
+const hasNoTimetable = (userId: string) => !(db.prepare('SELECT 1 FROM lessons WHERE user_id = ? LIMIT 1').get(userId)) && !(db.prepare('SELECT 1 FROM ics_lessons WHERE user_id = ? LIMIT 1').get(userId));
 
 // ---------- Aktion: HÜ lösen ----------
 
@@ -256,7 +268,7 @@ export const studentsPlugin: EditionPlugin = {
   },
 
   context: {
-    lessons: (userId, from, to) => lessonsFor(userId, from, to),
+    lessons: (userId, from, to) => [...lessonsFor(userId, from, to), ...icsLessons(userId, from, to)].sort((a, b) => `${a.date} ${a.start}`.localeCompare(`${b.date} ${b.start}`)),
     // Schule ohne WebUntis: Vormittag an Schultagen als belegt annehmen
     estimatedBusy: (user, _date, weekend, lessons): Busy | null =>
       !weekend && !lessons.length && isSchool(user) && hasNoTimetable(user.id) ? { start: '07:30', end: '13:30', label: 'Schule (geschätzt)' } : null,
@@ -267,7 +279,9 @@ export const studentsPlugin: EditionPlugin = {
     bookProviderName: (provider) => PROVIDERS[provider as BookProvider]?.name ?? null,
   },
 
-  hints: schoolHints,
+  hints: (user, lb) => [...schoolHints(user, lb), ...uniHints(user, lb)],
+  migrations: UNI_MIGRATIONS,
+  reminders: uniReminders,
 
   briefing: {
     sections: (user, lb) => {
@@ -300,6 +314,10 @@ export const studentsPlugin: EditionPlugin = {
       solve_homework: (userId, p) => solveHomework(userId, p.itemId, p.attempt ?? 0),
     },
     periodic: async (userId, every) => {
+      // Stundenplan-Abo der Uni alle 6 Stunden; Fehler stehen in den Einstellungen
+      if (hasFeed(userId)) {
+        await every(`ics:${userId}`, 6 * 3600_000, async () => { const u = getUser(userId); if (u) await refreshTimetable(u); }).catch((err) => console.warn('Stundenplan-Abo:', err.message));
+      }
       if (!hasSecret(userId, 'webuntis')) return;
       await every(`untis:${userId}`, 2 * 3600_000, () => syncUntis(userId)).catch((err) => {
         console.warn('WebUntis:', err.message);

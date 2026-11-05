@@ -18,5 +18,12 @@
  "planner.subjects": "Subjects",
  "planner.allSubjects": "All subjects",
  "today.todayAtSchool": "Today at school",
- "students.welcome.examples": "Homework works too: \"Latin homework p. 45 no. 3 Friday\" or \"Math test 12 Nov\"."
+ "students.welcome.examples": "Homework works too: \"Latin homework p. 45 no. 3 Friday\" or \"Math test 12 Nov\".",
+ "plan.f.flashcards": "Flashcard sets per month",
+ "plan.f.notes": "Notes from photos per month",
+ "students.hint.cancelled": "{subject} at {time} is cancelled tomorrow.",
+ "students.hint.register": "Registration for {title} closes {when}.",
+ "students.hint.assignment": "{title} is due {when} and you have no study block planned.",
+ "students.hint.assignment.open": "Plan a study block",
+ "students.assignment.inAWeek": "{title} is due in a week."
 }

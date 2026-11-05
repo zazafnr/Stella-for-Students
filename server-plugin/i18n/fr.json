@@ -18,5 +18,12 @@
  "planner.subjects": "Matières",
  "planner.allSubjects": "Toutes les matières",
  "today.todayAtSchool": "Aujourd’hui à l’école",
- "students.welcome.examples": "Je comprends aussi les devoirs et les contrôles : « Devoirs de latin p. 45 n° 3 vendredi » ou « Contrôle de maths 12/11 »."
+ "students.welcome.examples": "Je comprends aussi les devoirs et les contrôles : « Devoirs de latin p. 45 n° 3 vendredi » ou « Contrôle de maths 12/11 ».",
+ "plan.f.flashcards": "Jeux de cartes par mois",
+ "plan.f.notes": "Notes à partir de photos par mois",
+ "students.hint.cancelled": "{subject} à {time} est annulé demain.",
+ "students.hint.register": "L’inscription à {title} se termine {when}.",
+ "students.hint.assignment": "{title} est à rendre {when} et aucune séance de travail n’est prévue.",
+ "students.hint.assignment.open": "Planifier une séance de travail",
+ "students.assignment.inAWeek": "{title} est à rendre dans une semaine."
 }

@@ -5,7 +5,7 @@
 import type { PluginApi } from '../../core/server/src/plugin-api.ts';
 
 export type {
-  User, UserSettings, BookProvider, BookConfig, NewItem, ContentPart, Lesson, Lagebild, Busy, ActionType, ActionParams, Performed, EditionPlugin, PluginTool,
+  User, UserSettings, BookProvider, BookConfig, NewItem, ContentPart, Lesson, Lagebild, Busy, ActionType, ActionParams, Performed, EditionPlugin, PluginTool, PluginMigration,
 } from '../../core/server/src/plugin-api.ts';
 
 let api: PluginApi | null = null;
@@ -28,7 +28,7 @@ export const db = forward((a) => a.db);
 export const config = forward((a) => a.config);
 
 /** Die Fehlerklasse des Servers – nur sie wird dort in HTTP-Antworten übersetzt */
-export const HttpError = new Proxy(class {} as unknown as PluginApi['HttpError'], {
+export const HttpError = new Proxy(function HttpErrorBridge() { /* Ziel des Proxys; die echte Klasse kommt aus der Plugin-API */ } as unknown as PluginApi['HttpError'], {
   construct: (_t, args) => new (live().HttpError as new (...a: unknown[]) => object)(...args),
   get: (_t, prop) => (live().HttpError as unknown as Record<string | symbol, unknown>)[prop],
   has: (_t, prop) => prop in (live().HttpError as object),
@@ -62,6 +62,7 @@ export const notify: PluginApi['notify'] = ((...a: unknown[]) => (live().notify 
 export const voiceOf: PluginApi['voiceOf'] = ((...a: unknown[]) => (live().voiceOf as (...x: unknown[]) => unknown)(...a)) as PluginApi['voiceOf'];
 export const userLocale: PluginApi['userLocale'] = ((...a: unknown[]) => (live().userLocale as (...x: unknown[]) => unknown)(...a)) as PluginApi['userLocale'];
 export const userTerms: PluginApi['userTerms'] = ((...a: unknown[]) => (live().userTerms as (...x: unknown[]) => unknown)(...a)) as PluginApi['userTerms'];
+export const dayFor: PluginApi['dayFor'] = ((...a: unknown[]) => (live().dayFor as (...x: unknown[]) => unknown)(...a)) as PluginApi['dayFor'];
 export const tr: PluginApi['tr'] = ((...a: unknown[]) => (live().tr as (...x: unknown[]) => unknown)(...a)) as PluginApi['tr'];
 export const t: PluginApi['t'] = ((...a: unknown[]) => (live().t as (...x: unknown[]) => unknown)(...a)) as PluginApi['t'];
 export const pushToUser: PluginApi['pushToUser'] = ((...a: unknown[]) => (live().pushToUser as (...x: unknown[]) => unknown)(...a)) as PluginApi['pushToUser'];

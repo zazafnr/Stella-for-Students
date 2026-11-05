@@ -18,5 +18,12 @@
  "planner.subjects": "Fächer",
  "planner.allSubjects": "Alle Fächer",
  "today.todayAtSchool": "Heute in der Schule",
- "students.welcome.examples": "Hausübungen und Tests gehen auch: „Latein HÜ S. 45 Nr. 3 Freitag“ oder „Mathe SA 12.11.“."
+ "students.welcome.examples": "Hausübungen und Tests gehen auch: „Latein HÜ S. 45 Nr. 3 Freitag“ oder „Mathe SA 12.11.“.",
+ "plan.f.flashcards": "Lernkarten-Sets pro Monat",
+ "plan.f.notes": "Mitschriften aus Fotos pro Monat",
+ "students.hint.cancelled": "{subject} um {time} entfällt morgen.",
+ "students.hint.register": "Die Anmeldung für {title} endet {when}.",
+ "students.hint.assignment": "{title} ist {when} fällig und es ist kein Lernblock geplant.",
+ "students.hint.assignment.open": "Lernblock planen",
+ "students.assignment.inAWeek": "{title} ist in einer Woche fällig."
 }

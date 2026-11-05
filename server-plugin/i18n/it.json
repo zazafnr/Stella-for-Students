@@ -18,5 +18,12 @@
  "planner.subjects": "Materie",
  "planner.allSubjects": "Tutte le materie",
  "today.todayAtSchool": "Oggi a scuola",
- "students.welcome.examples": "Capisco anche compiti e verifiche: «Compiti di latino p. 45 n. 3 venerdì» o «Verifica di matematica 12/11»."
+ "students.welcome.examples": "Capisco anche compiti e verifiche: «Compiti di latino p. 45 n. 3 venerdì» o «Verifica di matematica 12/11».",
+ "plan.f.flashcards": "Set di flashcard al mese",
+ "plan.f.notes": "Appunti dalle foto al mese",
+ "students.hint.cancelled": "{subject} alle {time} domani è annullata.",
+ "students.hint.register": "L’iscrizione a {title} chiude {when}.",
+ "students.hint.assignment": "{title} scade {when} e non hai pianificato nessun blocco di studio.",
+ "students.hint.assignment.open": "Pianifica un blocco di studio",
+ "students.assignment.inAWeek": "{title} scade tra una settimana."
 }

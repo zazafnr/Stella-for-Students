@@ -18,5 +18,12 @@
  "planner.subjects": "Matérias",
  "planner.allSubjects": "Todas as matérias",
  "today.todayAtSchool": "Hoje na escola",
- "students.welcome.examples": "Também entendo lições e provas: «Lição de latim p. 45 n.º 3 sexta» ou «Prova de matemática 12/11»."
+ "students.welcome.examples": "Também entendo lições e provas: «Lição de latim p. 45 n.º 3 sexta» ou «Prova de matemática 12/11».",
+ "plan.f.flashcards": "Conjuntos de flashcards por mês",
+ "plan.f.notes": "Anotações a partir de fotos por mês",
+ "students.hint.cancelled": "{subject} às {time} foi cancelada para amanhã.",
+ "students.hint.register": "A inscrição em {title} termina {when}.",
+ "students.hint.assignment": "{title} vence {when} e você não tem nenhum bloco de estudo planejado.",
+ "students.hint.assignment.open": "Planejar um bloco de estudo",
+ "students.assignment.inAWeek": "{title} vence em uma semana."
 }
