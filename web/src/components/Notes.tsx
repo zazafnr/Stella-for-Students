@@ -5,7 +5,15 @@ import { showToast } from '@stella/web-core/ui/Decor.tsx';
 
 interface Summary { id: string; title: string; subject: string | null; day: string | null; text: string; openQuestions: string[]; status: 'working' | 'done' | 'failed'; progress: string | null; error: string | null }
 
-const readAsDataUrl = (f: File) => new Promise<string>((ok, no) => { const r = new FileReader(); r.onload = () => ok(String(r.result)); r.onerror = () => no(r.error); r.readAsDataURL(f); });
+/** Foto auf höchstens 2000 px verkleinern und als JPEG kodieren (Handyfotos sind sonst viel zu groß für die Anfrage) */
+async function readAsDataUrl(f: File): Promise<string> {
+  const bmp = await createImageBitmap(f);
+  const scale = Math.min(1, 2000 / Math.max(bmp.width, bmp.height));
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(bmp.width * scale); canvas.height = Math.round(bmp.height * scale);
+  canvas.getContext('2d')!.drawImage(bmp, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL('image/jpeg', 0.72);
+}
 
 /** Mitschriften aus Fotos: hochladen, Fortschritt sehen, abbrechen, lesen, weiterverwenden (Karten, Prüfungsstoff, Heft). */
 export function Notes() {

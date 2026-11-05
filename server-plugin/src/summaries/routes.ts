@@ -12,7 +12,8 @@ export function registerSummaryRoutes(api: FastifyInstance) {
     if (!s) throw new HttpError(404, 'Nicht gefunden');
     return { summary: s };
   });
-  api.post('/api/students/summaries', async (req) => {
+  // Fotos kommen als Data-URLs: bis zu 8 verkleinerte Seiten, deshalb mehr Platz als die üblichen 2 MB
+  api.post('/api/students/summaries', { bodyLimit: 15 * 1024 * 1024 }, async (req) => {
     const b = body(req);
     const images = Array.isArray(b.images) ? b.images.filter((x): x is string => typeof x === 'string') : [];
     return startSummary(getUser(req.user.id)!, { images, subject: typeof b.subject === 'string' ? b.subject : null, day: typeof b.day === 'string' ? b.day : null, title: typeof b.title === 'string' ? b.title : undefined });

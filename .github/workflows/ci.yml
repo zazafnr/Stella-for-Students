@@ -31,6 +31,8 @@ jobs:
       - run: PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm ci --no-audit --no-fund
       - name: Kern-Spiegel unverändert?
         run: STELLA_CORE_PATH=_core-src npm run sync:core -- --check
+      - name: iOS-Kopie und Texte aktuell?
+        run: scripts/sync-ios.sh --check && npx tsx scripts/gen-ios-catalogs.ts --check
       - run: npx tsc -p server-plugin --noEmit && npx tsc -p web --noEmit
       - run: npx playwright install --with-deps chromium
       - run: npm test
