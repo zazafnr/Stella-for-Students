@@ -8,7 +8,7 @@ Dieselbe Datei liegt in beiden Repos.
 Es gibt jetzt **eine Codebasis, zwei Apps**: das normale Stella (Repo `Stella-Life-Assistent`, Kern) und Stella for Students
 (Repo `Stella-for-Students`, Edition-Plugin + eigene Web-Oberfläche). Ein Server, eine Datenbank, ein Stripe, ein VPS; Konten sind je Edition getrennt.
 Die **Web-Apps, der Server, der Kalender, die Abos, Uni, Lernkarten, Mitschriften und die Website sind gebaut und getestet.**
-Beide **iOS-Apps (Pakete 9 und 10) sind gebaut**, aber hier ohne Swift-Compiler geschrieben; ob sie kompilieren, zeigt der macOS-Lauf der CI (Stand unten).
+Beide **iOS-Apps (Pakete 9 und 10) sind gebaut**. Hier gibt es keinen Swift-Compiler; geprüft wurde über die macOS-CI: beide Apps kompilieren (Swift-Package und Xcode-Projekt), die Unit-Tests laufen, und die Studenten-App läuft im Simulator gegen einen echten Server mit Beispieldaten (Screenshots auf `ios-preview` im Students-Repo).
 
 ## Was gebaut wurde
 
@@ -23,7 +23,7 @@ Beide **iOS-Apps (Pakete 9 und 10) sind gebaut**, aber hier ohne Swift-Compiler 
 | 6 Betrieb | ✅ Host-basierte Auslieferung (Caddy, Vercel-Datei, Build `build:students`), Kreuz-Login getestet; DNS und echte Auslieferung beim Nutzer |
 | 7 Kalender | ✅ Monat/Woche/Tag, Ziehen, Dehnen, Rückgängig, ICS-Quellen |
 | 8 Erwachsenes Vokabular | ✅ Mechanismus (`extendEditionCatalogs`) und Hauptstellen; Rest-Sweep offen |
-| 9 Studenten-iOS-App | ✅ `ios/StellaStudents.swiftpm` (Bundle `app.stella.students.ios`, Violett, Lernen-Tab mit Lernkarten und Mitschriften), XcodeGen-Projekt mit Bildschirmzeit-Erweiterungen, CI `ios.yml` (Build, Appetize, Klick-Vorschau), Skill, Beispieldaten `scripts/demo-seed.mts`; **geschrieben ohne Swift-Compiler – Abnahme durch den macOS-Lauf der CI, siehe unten** |
+| 9 Studenten-iOS-App | ✅ `ios/StellaStudents.swiftpm` (Bundle `app.stella.students.ios`, Violett, Lernen-Tab mit Lernkarten und Mitschriften), XcodeGen-Projekt mit Bildschirmzeit-Erweiterungen, CI `ios.yml` (Build, Appetize, Klick-Vorschau), Skill, Beispieldaten `scripts/demo-seed.mts`; **CI grün (macOS, Xcode 26): App kompiliert, Xcode-Projekt mit Bildschirmzeit-Erweiterungen kompiliert, Unit-Tests grün, Klick-Vorschau mit allen Screens (Heute, Chat, Planer, Lernen, Inbox, Woche, Einstellungen, Abo) liegt auf dem Branch `ios-preview`** |
 | 10 Normale iOS-App | ✅ Schule/Bücher/WebUntis/Handschrift/FreeNotes nur noch in der Students-Edition (Schalter `API.edition`), Kalender (`CalendarView`: Monat → Tag, neuer Termin) auf „Heute“ und im Planer; der tote Schul-Code in den Ansichten ist noch nicht gelöscht (siehe Offen) |
 | 11 Uni | ✅ Semester, Kurse, Stundenplan per ICS, Noten mit gewichtetem Schnitt, Oberfläche in Einstellungen und Lernen-Tab; Einführungsschritt offen |
 | 12 Lernkarten | ✅ Leitner-Wiederholung (1/3/7/16/35 Tage), Erzeugen mit KI, Abfrage im Chat, Anstoß in der Lernzeit, Karten-Ansicht im Lernen-Tab; iOS offen |
@@ -50,7 +50,8 @@ Texte in acht Sprachen, keine Gamification.
 | Anmeldung über Kreuz abgelehnt (echtes HTTP) | ✅ 409 `wrong_edition` |
 | Kalender in drei Ansichten | ✅ Skript `scripts/ui-check/calendar.cjs` |
 | Website auf Handy und Desktop | ✅ (auf `/stella` gab es schon vorher einen kleinen waagrechten Überlauf am Desktop, nicht von dieser Arbeit) |
-| CI auf GitHub, Push in beiden Apps, Offline-Start, HÜ-Durchlauf bis ins FreeNotes-Heft | ⚠ nicht von hier aus prüfbar (CI-Läufe, Geräte, FreeNotes-App) – bitte einmal von Hand |
+| CI auf GitHub (Kern, Students, beide iOS-Workflows) | ✅ grün |
+| Push auf echten Geräten, Offline-Start, HÜ-Durchlauf bis ins FreeNotes-Heft, Anmelden in der iOS-App mit echtem Konto | ⚠ nicht von hier aus prüfbar (Geräte, Apple-Konto, FreeNotes-App) – bitte einmal von Hand |
 
 ## Offen (Arbeit)
 
