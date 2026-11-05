@@ -20,11 +20,15 @@ import { UNI_MIGRATIONS } from './uni/migrations.ts';
 import { registerUniRoutes } from './uni/routes.ts';
 import { gradeSummary, uniHints, uniReminders } from './uni/hooks.ts';
 import { hasFeed, icsLessons, refreshTimetable } from './uni/uni.ts';
+import { CARD_MIGRATIONS } from './cards/migrations.ts';
+import { registerCardRoutes } from './cards/routes.ts';
+import { CARD_TOOLS, cardBriefing, cardNudges } from './cards/hooks.ts';
 
 const str = (v: unknown, max = 4000) => (typeof v === 'string' ? v.slice(0, max) : '');
 
 function registerSchoolRoutes(api: FastifyInstance) {
   registerUniRoutes(api);
+  registerCardRoutes(api);
   // ----- Schulbücher (digi4school, scook) -----
   const provider = (p: string): BookProvider => {
     if (!(p in PROVIDERS)) throw new HttpError(404, 'Unbekannter Anbieter');
@@ -184,6 +188,7 @@ function schoolHints(user: User, lb: Lagebild): NonNullable<ReturnType<NonNullab
 // ---------- Werkzeuge für den Chat-Agenten ----------
 
 const TOOLS: NonNullable<EditionPlugin['tools']> = [
+  ...CARD_TOOLS,
   {
     def: {
       type: 'function',
@@ -254,16 +259,18 @@ export const studentsPlugin: EditionPlugin = {
   actions: {
     groups: {
       homework: { label: 'HÜs lösen', help: 'lösen und in deiner Handschrift ins Heft schreiben', default: 'auto', levels: ['auto', 'notify', 'ask', 'never'] },
+      learning: { label: 'Lernanstöße', help: 'in der Lernzeit kurz an fällige Lernkarten erinnern (höchstens einmal je Lerneinheit)', default: 'auto', levels: ['auto', 'never'] },
     },
     defs: { 'homework.solve': HOMEWORK_SOLVE },
   },
 
   prompt: (user) => {
-    if (!isSchool(user)) return {};
+    const quiz = 'QUIZ: when asked to quiz the user ("Frag mich … ab"), call due_cards (optionally with subject), ask ONE card at a time (only the front), wait for the answer, judge it kindly by meaning (not exact wording), call answer_card with correct true/false, show the back if it was wrong, then ask the next. No scores, streaks or points – just "that was right" or the correct answer. Flashcards can be made from an exam\'s material or pasted text in the Learn tab.';
+    if (!isSchool(user)) return { capabilities: [quiz] };
     const terms = userTerms(user);
     return {
       rules: [`School words in ${user.name}'s country: homework = "${terms.homework}", big written exam = "${terms.exam}", short test = "${terms.quiz}". Use these words.`],
-      capabilities: ['You do the homework (solve_homework): Stella solves it and writes it into the notebook in handwriting.'],
+      capabilities: ['You do the homework (solve_homework): Stella solves it and writes it into the notebook in handwriting.', quiz],
     };
   },
 
@@ -280,18 +287,19 @@ export const studentsPlugin: EditionPlugin = {
   },
 
   hints: (user, lb) => [...schoolHints(user, lb), ...uniHints(user, lb)],
-  migrations: UNI_MIGRATIONS,
+  migrations: [...UNI_MIGRATIONS, ...CARD_MIGRATIONS],
   reminders: uniReminders,
 
   briefing: {
     sections: (user, lb) => {
       const lessons = lb.days[0]!.lessons;
-      if (!lessons.length) return [];
+      const cardLine = cardBriefing(user, lb);
+      if (!lessons.length) return cardLine;
       const held = lessons.filter((l) => l.status !== 'cancelled');
       const lines = held.length ? [`${held[0]!.start}–${held.at(-1)!.end} · ${tr(user, 'briefing.lessons', { count: held.length })}`] : [tr(user, 'briefing.allCancelled')];
       for (const l of lessons.filter((x) => x.status === 'cancelled')) lines.push(tr(user, 'briefing.cancelled', { subject: String(l.subject ?? l.code), start: l.start }));
       for (const l of lessons.filter((x) => x.status === 'irregular' && x.info)) lines.push(`${l.subject ?? l.code}: ${l.info}`);
-      return [{ id: 'school', title: tr(user, 'briefing.section.school'), lines }];
+      return [{ id: 'school', title: tr(user, 'briefing.section.school'), lines }, ...cardLine];
     },
     done: (user, since) => {
       const n = (db.prepare(`SELECT COUNT(*) AS n FROM items WHERE user_id = ? AND kind = 'homework' AND status = 'done'
@@ -314,6 +322,8 @@ export const studentsPlugin: EditionPlugin = {
       solve_homework: (userId, p) => solveHomework(userId, p.itemId, p.attempt ?? 0),
     },
     periodic: async (userId, every) => {
+      // Anstoß in der Lernzeit: kurz an fällige Lernkarten erinnern (nur wenn das Recht nicht „nie“ ist, einmal je Lerneinheit)
+      await every(`cards:${userId}`, 5 * 60_000, () => cardNudges(userId)).catch((err) => console.warn('Lernkarten-Anstoß:', err.message));
       // Stundenplan-Abo der Uni alle 6 Stunden; Fehler stehen in den Einstellungen
       if (hasFeed(userId)) {
         await every(`ics:${userId}`, 6 * 3600_000, async () => { const u = getUser(userId); if (u) await refreshTimetable(u); }).catch((err) => console.warn('Stundenplan-Abo:', err.message));

@@ -30,8 +30,8 @@ const job = mk('Mia', { situation: 'work', features: ['planner', 'mails', 'shopp
 
 test('das Plugin hängt sich als „students“ ein', () => {
   assert.deepEqual(res.loaded, ['students']);
-  assert.deepEqual(pluginTools(getUser(school)!).map((t) => t.def.function.name).sort(), ['grade_average', 'solve_homework', 'timetable']);
-  assert.deepEqual(Object.keys(pluginActionGroups()), ['homework']);
+  assert.deepEqual(pluginTools(getUser(school)!).map((t) => t.def.function.name).sort(), ['answer_card', 'due_cards', 'grade_average', 'solve_homework', 'timetable']);
+  assert.deepEqual(Object.keys(pluginActionGroups()), ['homework', 'learning']);
 });
 
 test('Recht „HÜs lösen“: Standard selbst, alte Schalter zählen weiter', () => {

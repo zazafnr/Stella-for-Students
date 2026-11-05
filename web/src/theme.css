@@ -51,3 +51,7 @@ h2 { font-weight: 800; }
 .learn-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 18px; background: var(--surface); box-shadow: var(--shadow); margin-bottom: 8px; border-left: 5px solid var(--subject, var(--blue)); }
 .learn-row .when { min-width: 72px; font-weight: 700; color: var(--text-2); }
 .learn-soon { border: 2px dashed var(--border-strong); border-radius: var(--radius); padding: 18px; color: var(--muted); background: transparent; }
+
+.card-practice { display: flex; flex-direction: column; gap: 16px; align-items: stretch; }
+.card-face { min-height: 180px; display: flex; flex-direction: column; justify-content: center; gap: 12px; padding: 28px; border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow-lg); text-align: center; font-size: 20px; }
+.card-back { margin: 0; color: var(--muted); font-size: 17px; border-top: 1px solid var(--border); padding-top: 12px; }

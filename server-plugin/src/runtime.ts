@@ -63,6 +63,7 @@ export const voiceOf: PluginApi['voiceOf'] = ((...a: unknown[]) => (live().voice
 export const userLocale: PluginApi['userLocale'] = ((...a: unknown[]) => (live().userLocale as (...x: unknown[]) => unknown)(...a)) as PluginApi['userLocale'];
 export const userTerms: PluginApi['userTerms'] = ((...a: unknown[]) => (live().userTerms as (...x: unknown[]) => unknown)(...a)) as PluginApi['userTerms'];
 export const dayFor: PluginApi['dayFor'] = ((...a: unknown[]) => (live().dayFor as (...x: unknown[]) => unknown)(...a)) as PluginApi['dayFor'];
+export const quotaFor: PluginApi['quotaFor'] = ((...a: unknown[]) => (live().quotaFor as (...x: unknown[]) => unknown)(...a)) as PluginApi['quotaFor'];
 export const tr: PluginApi['tr'] = ((...a: unknown[]) => (live().tr as (...x: unknown[]) => unknown)(...a)) as PluginApi['tr'];
 export const t: PluginApi['t'] = ((...a: unknown[]) => (live().t as (...x: unknown[]) => unknown)(...a)) as PluginApi['t'];
 export const pushToUser: PluginApi['pushToUser'] = ((...a: unknown[]) => (live().pushToUser as (...x: unknown[]) => unknown)(...a)) as PluginApi['pushToUser'];
