@@ -1,0 +1,921 @@
+// Kern-Spiegel – nicht hier ändern, Änderungen in Stella-Life-Assistent
+import Database from 'better-sqlite3';
+import { randomUUID } from 'node:crypto';
+import { AsyncLocalStorage } from 'node:async_hooks';
+import path from 'node:path';
+import { isEdition, todayIn, type Edition, type Locale, type UserProfile, type ActionGroup, type Attachment, type ChatMessage, type Item, type ItemKind, type ItemStatus, type PermissionLevel, type Tone } from '@stella/shared';
+import { config } from './config.ts';
+
+export const db = new Database(path.join(config.dataDir, 'stella.db'));
+db.pragma('journal_mode = WAL');
+db.pragma('foreign_keys = ON');
+
+const MIGRATIONS: string[] = [
+  `
+  CREATE TABLE users (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    time_zone TEXT NOT NULL,
+    settings TEXT NOT NULL DEFAULT '{}',
+    ingest_token TEXT NOT NULL UNIQUE,
+    created_at TEXT NOT NULL
+  );
+  CREATE TABLE sessions (
+    token_hash TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    device TEXT,
+    created_at TEXT NOT NULL,
+    last_seen TEXT NOT NULL
+  );
+  CREATE TABLE items (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    kind TEXT NOT NULL,
+    subject TEXT,
+    title TEXT NOT NULL,
+    detail TEXT,
+    notes TEXT,
+    page TEXT,
+    exercises TEXT,
+    book TEXT,
+    due TEXT,
+    time TEXT,
+    status TEXT NOT NULL DEFAULT 'open',
+    material TEXT,
+    parent_id TEXT,
+    attachments TEXT NOT NULL DEFAULT '[]',
+    source TEXT NOT NULL DEFAULT 'chat',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    deleted INTEGER NOT NULL DEFAULT 0
+  );
+  CREATE INDEX items_user_due ON items(user_id, due);
+  CREATE INDEX items_user_updated ON items(user_id, updated_at);
+  CREATE TABLE reminders (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    item_id TEXT REFERENCES items(id) ON DELETE CASCADE,
+    fire_at TEXT NOT NULL,
+    message TEXT NOT NULL,
+    with_attachments INTEGER NOT NULL DEFAULT 0,
+    sent_at TEXT
+  );
+  CREATE INDEX reminders_due ON reminders(sent_at, fire_at);
+  CREATE TABLE messages (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    client_id TEXT,
+    role TEXT NOT NULL,
+    text TEXT NOT NULL,
+    attachments TEXT NOT NULL DEFAULT '[]',
+    created_at TEXT NOT NULL,
+    UNIQUE(user_id, client_id)
+  );
+  CREATE INDEX messages_user_created ON messages(user_id, created_at);
+  CREATE TABLE pending_questions (
+    user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    type TEXT NOT NULL,
+    item_id TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  );
+  CREATE TABLE push_subscriptions (
+    endpoint TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    subscription TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  );
+  CREATE TABLE jobs (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    type TEXT NOT NULL,
+    payload TEXT NOT NULL,
+    run_at TEXT NOT NULL,
+    attempts INTEGER NOT NULL DEFAULT 0,
+    status TEXT NOT NULL DEFAULT 'queued',
+    last_error TEXT
+  );
+  CREATE INDEX jobs_due ON jobs(status, run_at);
+  CREATE TABLE secrets (
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    value TEXT NOT NULL,
+    PRIMARY KEY (user_id, name)
+  );
+  CREATE TABLE health_days (
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    date TEXT NOT NULL,
+    steps INTEGER,
+    sleep_hours REAL,
+    active_minutes INTEGER,
+    updated_at TEXT NOT NULL,
+    PRIMARY KEY (user_id, date)
+  );
+  CREATE TABLE inbox_events (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    source TEXT NOT NULL,
+    sender TEXT,
+    text TEXT,
+    payload TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  );
+  CREATE INDEX inbox_user_created ON inbox_events(user_id, created_at);
+  `,
+  `
+  ALTER TABLE reminders ADD COLUMN always INTEGER NOT NULL DEFAULT 0;
+  ALTER TABLE items ADD COLUMN external_id TEXT;
+  CREATE UNIQUE INDEX items_external ON items(user_id, external_id) WHERE external_id IS NOT NULL;
+  CREATE TABLE lessons (
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    date TEXT NOT NULL,
+    start TEXT NOT NULL,
+    end TEXT NOT NULL,
+    subject TEXT,
+    subject_code TEXT,
+    status TEXT NOT NULL DEFAULT 'normal',
+    info TEXT
+  );
+  CREATE INDEX lessons_user_date ON lessons(user_id, date);
+  CREATE TABLE mail_state (
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    account_id TEXT NOT NULL,
+    uid_validity TEXT NOT NULL,
+    last_uid INTEGER NOT NULL,
+    last_error TEXT,
+    checked_at TEXT,
+    PRIMARY KEY (user_id, account_id)
+  );
+  CREATE TABLE notified (
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    key TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    PRIMARY KEY (user_id, key)
+  );
+  `,
+  `
+  CREATE TABLE notes_deliveries (
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    item_id TEXT NOT NULL REFERENCES items(id) ON DELETE CASCADE,
+    delivered_at TEXT NOT NULL,
+    notebook TEXT,
+    page INTEGER,
+    PRIMARY KEY (user_id, item_id)
+  );
+  `,
+  `
+  CREATE TABLE llm_usage (
+    day TEXT PRIMARY KEY,
+    requests INTEGER NOT NULL DEFAULT 0
+  );
+  `,
+  `
+  -- Stellas Gedächtnis: was sie über den Nutzer weiß (lernt selbst, Nutzer sieht und ändert alles)
+  CREATE TABLE memories (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    category TEXT NOT NULL,
+    text TEXT NOT NULL,
+    source TEXT NOT NULL,
+    schedule TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+  CREATE INDEX memories_user ON memories(user_id, updated_at);
+  -- Alles, was Stella tut oder vorschlägt – mit Daten zum Rückgängigmachen
+  CREATE TABLE actions (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    type TEXT NOT NULL,
+    summary TEXT NOT NULL,
+    params TEXT NOT NULL,
+    status TEXT NOT NULL,
+    source TEXT NOT NULL,
+    undo TEXT,
+    result TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+  CREATE INDEX actions_user ON actions(user_id, updated_at);
+  ALTER TABLE messages ADD COLUMN action_id TEXT;
+  `,
+  `
+  -- Hinweise („Was hast du vergessen?“): wann zugestellt, welcher Vorschlag dazu, weggeklickt?
+  CREATE TABLE hints_state (
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    key TEXT NOT NULL,
+    delivered_at TEXT,
+    action_id TEXT,
+    dismissed_at TEXT,
+    PRIMARY KEY (user_id, key)
+  );
+  `,
+  `
+  -- Paket 1: Rolle (der erste Nutzer ist Owner), KI-Zähler je Anbieter und Nutzer, Server-Schlüssel ohne Nutzerbezug
+  ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'user';
+  UPDATE users SET role = 'owner' WHERE rowid = (SELECT rowid FROM users ORDER BY created_at ASC, rowid ASC LIMIT 1);
+  CREATE TABLE llm_usage_v2 (
+    day TEXT NOT NULL,
+    provider TEXT NOT NULL DEFAULT 'openrouter',
+    user_id TEXT NOT NULL DEFAULT '',
+    requests INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (day, provider, user_id)
+  );
+  INSERT INTO llm_usage_v2 (day, requests) SELECT day, requests FROM llm_usage;
+  DROP TABLE llm_usage;
+  ALTER TABLE llm_usage_v2 RENAME TO llm_usage;
+  -- secrets bekommt einen Bereich "__system__" (Server-Schlüssel); dafür fällt der Fremdschlüssel weg,
+  -- das Löschen mit dem Konto übernimmt ein Trigger
+  CREATE TABLE secrets_v2 (
+    user_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    value TEXT NOT NULL,
+    PRIMARY KEY (user_id, name)
+  );
+  INSERT INTO secrets_v2 (user_id, name, value) SELECT user_id, name, value FROM secrets;
+  DROP TABLE secrets;
+  ALTER TABLE secrets_v2 RENAME TO secrets;
+  CREATE TRIGGER secrets_on_user_delete AFTER DELETE ON users BEGIN
+    DELETE FROM secrets WHERE user_id = OLD.id;
+    DELETE FROM llm_usage WHERE user_id = OLD.id;
+  END;
+  `,
+  `
+  -- Paket 2: Absender-Regeln für Mails (gelten vor der KI) und Zwischenspeicher für den Volltext (30 Tage)
+  CREATE TABLE mail_rules (
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    sender TEXT NOT NULL,
+    category TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    PRIMARY KEY (user_id, sender)
+  );
+  CREATE TABLE mail_bodies (
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    event_id TEXT NOT NULL,
+    body TEXT NOT NULL,
+    truncated INTEGER NOT NULL DEFAULT 0,
+    fetched_at TEXT NOT NULL,
+    PRIMARY KEY (user_id, event_id)
+  );
+  `,
+  `
+  -- Paket 3: Chats nach Tagen. Jede Nachricht gehört zu einem Chat (conversation); alte Nachrichten ordnet backfillConversations() pro Tag zu.
+  CREATE TABLE conversations (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    title TEXT,
+    day TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+  CREATE INDEX conversations_user ON conversations(user_id, updated_at);
+  ALTER TABLE messages ADD COLUMN conversation_id TEXT;
+  CREATE INDEX messages_conversation ON messages(conversation_id, created_at);
+  `,
+  `
+  -- Paket 5: Registrierung mit Einladung und E-Mail-Code. Bestehende Konten gelten als bestätigt (DEFAULT 1).
+  ALTER TABLE users ADD COLUMN verified INTEGER NOT NULL DEFAULT 1;
+  CREATE TABLE invites (
+    code TEXT PRIMARY KEY,
+    created_by TEXT REFERENCES users(id) ON DELETE SET NULL,
+    used_by TEXT REFERENCES users(id) ON DELETE SET NULL,
+    created_at TEXT NOT NULL,
+    expires_at TEXT
+  );
+  CREATE TABLE email_codes (
+    user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    code_hash TEXT NOT NULL,
+    expires_at TEXT NOT NULL,
+    attempts INTEGER NOT NULL DEFAULT 0,
+    sent_at TEXT NOT NULL
+  );
+  `,
+  `
+  -- Paket 7: Einkaufsliste/Listen, Erledigungen mit Ort, Laden-Cache, Karten unter Nachrichten
+  CREATE TABLE lists (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    kind TEXT NOT NULL DEFAULT 'custom',
+    created_at TEXT NOT NULL
+  );
+  CREATE UNIQUE INDEX lists_one_shopping ON lists(user_id) WHERE kind = 'shopping';
+  CREATE TABLE list_items (
+    id TEXT PRIMARY KEY,
+    list_id TEXT NOT NULL REFERENCES lists(id) ON DELETE CASCADE,
+    text TEXT NOT NULL,
+    qty TEXT,
+    done INTEGER NOT NULL DEFAULT 0,
+    added_via TEXT NOT NULL DEFAULT 'chat',
+    created_at TEXT NOT NULL,
+    done_at TEXT
+  );
+  CREATE INDEX list_items_list ON list_items(list_id, done, created_at);
+  ALTER TABLE items ADD COLUMN place TEXT;
+  ALTER TABLE messages ADD COLUMN card TEXT;
+  CREATE TABLE place_words (word TEXT PRIMARY KEY, category TEXT);
+  CREATE TABLE places_cache (key TEXT PRIMARY KEY, data TEXT NOT NULL, fetched_at TEXT NOT NULL);
+  `,
+  `
+  -- Paket 8: Ziele mit Fortschritt (keine Punkte, Serien oder Abzeichen)
+  CREATE TABLE goals (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    why TEXT,
+    metric TEXT NOT NULL DEFAULT 'Einheiten',
+    unit TEXT NOT NULL DEFAULT 'x',
+    target REAL NOT NULL DEFAULT 1,
+    cadence TEXT NOT NULL DEFAULT 'weekly:1',
+    minutes INTEGER,
+    check_in TEXT,
+    status TEXT NOT NULL DEFAULT 'active',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+  CREATE INDEX goals_user ON goals(user_id, status);
+  CREATE TABLE goal_logs (
+    id TEXT PRIMARY KEY,
+    goal_id TEXT NOT NULL REFERENCES goals(id) ON DELETE CASCADE,
+    date TEXT NOT NULL,
+    value REAL NOT NULL DEFAULT 1,
+    note TEXT,
+    created_at TEXT NOT NULL
+  );
+  CREATE INDEX goal_logs_goal ON goal_logs(goal_id, date);
+  `,
+  `
+  -- Paket 9: Ausgaben über Apple Pay (nur Betrag, Händler und Kartenname – nie Kartennummern)
+  CREATE TABLE transactions (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    amount_cents INTEGER NOT NULL,
+    currency TEXT NOT NULL DEFAULT 'EUR',
+    merchant TEXT NOT NULL,
+    merchant_key TEXT NOT NULL,
+    category TEXT NOT NULL,
+    card_label TEXT,
+    occurred_at TEXT NOT NULL,
+    day TEXT NOT NULL,
+    source TEXT NOT NULL DEFAULT 'applepay',
+    created_at TEXT NOT NULL
+  );
+  CREATE INDEX transactions_user_day ON transactions(user_id, day);
+  CREATE INDEX transactions_user_merchant ON transactions(user_id, merchant_key);
+  CREATE TABLE merchant_categories (
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    merchant TEXT NOT NULL,
+    category TEXT NOT NULL,
+    source TEXT NOT NULL DEFAULT 'user',
+    PRIMARY KEY (user_id, merchant)
+  );
+  CREATE TABLE budgets (
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    category TEXT NOT NULL,
+    amount_cents INTEGER NOT NULL,
+    PRIMARY KEY (user_id, category)
+  );
+  `,
+  `
+  -- Paket 10: Daueraufträge („erinnere mich jeden Montag an den Müll“)
+  ALTER TABLE items ADD COLUMN recurrence TEXT;
+  ALTER TABLE items ADD COLUMN recurrence_paused INTEGER NOT NULL DEFAULT 0;
+  `,
+  `
+  -- Paket 11: Mit Stella per E-Mail schreiben (verknüpfte Adressen), Mail-Protokoll fürs Firmen-Dashboard
+  CREATE TABLE user_emails (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    email TEXT NOT NULL,
+    verified INTEGER NOT NULL DEFAULT 0,
+    code_hash TEXT,
+    code_expires TEXT,
+    attempts INTEGER NOT NULL DEFAULT 0,
+    sent_at TEXT,
+    created_at TEXT NOT NULL
+  );
+  CREATE UNIQUE INDEX user_emails_verified ON user_emails(email) WHERE verified = 1;
+  CREATE INDEX user_emails_user ON user_emails(user_id);
+  CREATE TABLE mail_log (
+    id TEXT PRIMARY KEY,
+    at TEXT NOT NULL,
+    direction TEXT NOT NULL,
+    purpose TEXT NOT NULL,
+    status TEXT NOT NULL,
+    user_id TEXT,
+    domain TEXT,
+    detail TEXT
+  );
+  CREATE INDEX mail_log_at ON mail_log(at);
+  CREATE TABLE inbound_mail (
+    message_id TEXT PRIMARY KEY,
+    at TEXT NOT NULL,
+    sender TEXT NOT NULL,
+    outcome TEXT NOT NULL
+  );
+  CREATE INDEX inbound_mail_sender ON inbound_mail(sender, at);
+  `,
+  `
+  -- v3 Paket 1: KI-Kosten je Tag, Nutzer und Modell (Mikro-Dollar: 1 000 000 = 1 $).
+  -- llm_usage zählt weiter nur Anfragen je Anbieter (Tageslimit von OpenRouter), diese Tabelle die Tokens und Kosten.
+  CREATE TABLE llm_cost (
+    day TEXT NOT NULL,
+    user_id TEXT NOT NULL DEFAULT '',
+    model TEXT NOT NULL,
+    requests INTEGER NOT NULL DEFAULT 0,
+    input_tokens INTEGER NOT NULL DEFAULT 0,
+    output_tokens INTEGER NOT NULL DEFAULT 0,
+    cache_read_tokens INTEGER NOT NULL DEFAULT 0,
+    cache_write_tokens INTEGER NOT NULL DEFAULT 0,
+    cost_micro_usd INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (day, user_id, model)
+  );
+  CREATE INDEX llm_cost_user ON llm_cost(user_id, day);
+  `,
+  `
+  -- v3 Paket 2: Sprache und Land. Alle bestehenden Konten sind deutsch und aus Österreich; neue starten mit Englisch.
+  UPDATE users SET settings = json_set(settings, '$.locale', 'de') WHERE json_extract(settings, '$.locale') IS NULL;
+  UPDATE users SET settings = json_set(settings, '$.country', 'AT') WHERE json_extract(settings, '$.country') IS NULL;
+  `,
+  `
+  -- v3 Paket 5a: Anmelden und Bestätigen über einen Link in der Mail (Token und Code nur als Hash)
+  CREATE TABLE login_requests (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    purpose TEXT NOT NULL,            -- signup | login | reset | address
+    token_hash TEXT NOT NULL UNIQUE,
+    code_hash TEXT NOT NULL,
+    device_hash TEXT NOT NULL,        -- Hash des Gerätegeheimnisses des wartenden Geräts
+    created_at TEXT NOT NULL,
+    expires_at TEXT NOT NULL,
+    used_at TEXT,                     -- Link bzw. Code wurde bestätigt
+    claimed_at TEXT,                  -- das wartende Gerät hat die Sitzung abgeholt
+    attempts INTEGER NOT NULL DEFAULT 0,
+    ip TEXT,
+    user_agent TEXT
+  );
+  CREATE INDEX login_requests_user ON login_requests(user_id, created_at);
+  `,
+  `
+  -- v3 Paket 5b: Abos, Verbrauchszähler, Stripe-Ereignisse (Idempotenz)
+  CREATE TABLE subscriptions (
+    user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    plan TEXT NOT NULL,                -- free | plus | pro | max
+    status TEXT NOT NULL,              -- active | trialing | past_due | canceled | unpaid | incomplete
+    provider TEXT NOT NULL,            -- stripe | gift
+    provider_customer TEXT,
+    provider_sub TEXT,
+    current_period_end TEXT,           -- bei Geschenken: Ablaufdatum (leer = unbegrenzt)
+    cancel_at TEXT,
+    updated_at TEXT NOT NULL
+  );
+  CREATE TABLE usage_counters (
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    period TEXT NOT NULL,              -- Tag (YYYY-MM-DD) bzw. Monat (YYYY-MM) in der Zeitzone der Nutzerin
+    kind TEXT NOT NULL,                -- ai_message (Tag) | pro_task (Monat)
+    count INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (user_id, period, kind)
+  );
+  CREATE TABLE stripe_events (id TEXT PRIMARY KEY, type TEXT NOT NULL, at TEXT NOT NULL);
+  -- bestehende Nutzer: Max als Geschenk ohne Ablauf
+  INSERT INTO subscriptions (user_id, plan, status, provider, updated_at) SELECT id, 'max', 'active', 'gift', datetime('now') FROM users;
+  `,
+  // Paket 10: Kanäle (Telegram, später WhatsApp)
+  `
+  CREATE TABLE channel_links (
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    channel TEXT NOT NULL,
+    external_id TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    PRIMARY KEY (user_id, channel),
+    UNIQUE (channel, external_id)
+  );
+  -- Einmal-Token zum Verknüpfen (nur der Hash wird gespeichert)
+  CREATE TABLE channel_tokens (
+    hash TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    channel TEXT NOT NULL,
+    expires_at TEXT NOT NULL
+  );
+  ALTER TABLE messages ADD COLUMN via TEXT;
+  `,
+  // Paket 11: Nachrichten (nur Titel, Teaser und Link; nach 3 Tagen gelöscht)
+  `
+  CREATE TABLE news_items (
+    id TEXT PRIMARY KEY,
+    source_id TEXT NOT NULL,
+    url TEXT NOT NULL UNIQUE,
+    title TEXT NOT NULL,
+    teaser TEXT NOT NULL DEFAULT '',
+    published_at TEXT NOT NULL,
+    topics TEXT NOT NULL DEFAULT '[]',
+    cluster_id TEXT NOT NULL,
+    fetched_at TEXT NOT NULL
+  );
+  CREATE INDEX news_items_published ON news_items(published_at);
+  CREATE INDEX news_items_cluster ON news_items(cluster_id);
+  CREATE TABLE news_feeds (
+    source_id TEXT PRIMARY KEY,
+    feed_url TEXT NOT NULL,
+    etag TEXT,
+    last_modified TEXT,
+    status TEXT,
+    error TEXT,
+    fetched_at TEXT
+  );
+  CREATE TABLE news_digest (
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    date TEXT NOT NULL,
+    json TEXT NOT NULL,
+    PRIMARY KEY (user_id, date)
+  );
+  `,
+  // Paket 13: Bildschirmzeit-Ziele (iOS). Der Server kennt nur Name, Limit und erreichte Schwellen – nie App-Daten.
+  `
+  CREATE TABLE screentime_goals (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    limit_minutes INTEGER NOT NULL,
+    shield INTEGER NOT NULL DEFAULT 0,
+    deleted INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+  CREATE INDEX screentime_goals_user ON screentime_goals(user_id);
+  CREATE TABLE screentime_events (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    goal_id TEXT NOT NULL REFERENCES screentime_goals(id) ON DELETE CASCADE,
+    day TEXT NOT NULL,
+    minutes INTEGER NOT NULL,
+    percent INTEGER NOT NULL,
+    at TEXT NOT NULL,
+    UNIQUE (goal_id, day, minutes)
+  );
+  CREATE INDEX screentime_events_user_day ON screentime_events(user_id, day);
+  `,
+  // Editionen: jedes Konto gehört zu genau einer Edition ('life' oder 'students'); bestehende Konten bleiben 'life'
+  `ALTER TABLE users ADD COLUMN edition TEXT NOT NULL DEFAULT 'life';`,
+];
+
+function migrate() {
+  const version = db.pragma('user_version', { simple: true }) as number;
+  for (let v = version; v < MIGRATIONS.length; v++) {
+    db.transaction(() => {
+      db.exec(MIGRATIONS[v]);
+      db.pragma(`user_version = ${v + 1}`);
+    })();
+  }
+}
+migrate();
+
+export const now = () => new Date().toISOString();
+export const newId = () => randomUUID();
+
+// ---------- Users ----------
+
+export type BookProvider = 'digi4school' | 'scook';
+
+export interface BookConfig {
+  subject: string;
+  provider: BookProvider;
+  url: string;
+  /** gedruckte Seitenzahl + Versatz = Seite im E-Book-Viewer */
+  pageOffset?: number;
+  /** optional: direkte Seiten-URL mit {page} */
+  pageUrlTemplate?: string;
+}
+
+export interface UserSettings {
+  eveningTime?: string;
+  studyTime?: string;
+  books?: BookConfig[];
+  /** veraltet – wird beim Lesen in `books` übernommen */
+  digi4schoolBooks?: Omit<BookConfig, 'provider'>[];
+  stepGoal?: number;
+  /** HÜs automatisch lösen und in Handschrift ins Heft schreiben */
+  homeworkAutopilot?: boolean;
+  /** Werbung/Spam automatisch in den Papierkorb */
+  mailAutoTrash?: boolean;
+  /** wie Stella schreibt: nett, frech oder cool */
+  tone?: Tone;
+  /** Morning Briefing: "auto" = vor der ersten Stunde, "HH:MM" = feste Zeit, "off" = aus */
+  briefing?: string;
+  /** Sonntagabend den Wochenplan anbieten: "sunday" (Standard) oder "off" */
+  weekPlan?: 'sunday' | 'off';
+  /** was Stella von sich aus darf (je Bereich), siehe actions.ts */
+  permissions?: Partial<Record<ActionGroup, PermissionLevel>>;
+  /** Lebenssituation und Funktionen aus der Einführung */
+  profile?: UserProfile;
+  /** Sprache der Oberfläche, der Texte und Mails (Standard: Englisch) */
+  locale?: Locale;
+  /** Land (ISO-3166) für Schulbegriffe, News und Wetter-Rückfall */
+  country?: string;
+  /** Standort: in der Einführung beantwortet ('later' = später noch einmal fragen) */
+  locationPermission?: 'granted' | 'denied' | 'later';
+  /** Zuletzt bekannter Ort, auf etwa 1 km gerundet – für Wetter, Briefing und News. Der genaue Standort wird nie gespeichert. */
+  lastPlace?: { lat: number; lon: number; at: string };
+  /** Wer benachrichtigt werden will, wenn etwas Neues da ist (z. B. FreeNotes) */
+  notify?: { freenotes?: boolean };
+  /** Wohin Stella von sich aus schreibt (Briefing, Erinnerungen, Hinweise): push und/oder telegram. Standard: push. */
+  notifyVia?: ('push' | 'telegram')[];
+  /** 'pending': die Einführung wird beim nächsten Öffnen gezeigt; 'done': erledigt oder übersprungen */
+  onboarding?: 'pending' | 'done';
+}
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  timeZone: string;
+  settings: UserSettings;
+  ingestToken: string;
+  /** der erste Nutzer ist 'owner' (darf Server-Schlüssel eintragen), alle anderen 'user' */
+  role: 'owner' | 'user';
+  /** E-Mail per Code bestätigt */
+  verified: boolean;
+  /** zu welcher App das Konto gehört */
+  edition: Edition;
+}
+
+type UserRow = { id: string; name: string; email: string; time_zone: string; settings: string; ingest_token: string; role: string; verified: number; edition?: string };
+function readSettings(json: string): UserSettings {
+  const s = JSON.parse(json) as UserSettings;
+  if (!s.books && s.digi4schoolBooks) s.books = s.digi4schoolBooks.map((b) => ({ ...b, provider: 'digi4school' }));
+  delete s.digi4schoolBooks;
+  return s;
+}
+
+const toUser = (r: UserRow): User => ({
+  id: r.id, name: r.name, email: r.email, timeZone: r.time_zone,
+  settings: readSettings(r.settings), ingestToken: r.ingest_token,
+  role: r.role === 'owner' ? 'owner' : 'user',
+  verified: r.verified !== 0,
+  edition: isEdition(r.edition) ? r.edition : 'life',
+});
+
+export function allUserIds(): string[] {
+  return (db.prepare('SELECT id FROM users').all() as { id: string }[]).map((r) => r.id);
+}
+
+export function getUser(id: string): User | null {
+  const r = db.prepare('SELECT * FROM users WHERE id = ?').get(id) as UserRow | undefined;
+  return r ? toUser(r) : null;
+}
+
+export function updateUserSettings(id: string, patch: Partial<UserSettings>, timeZone?: string) {
+  const user = getUser(id)!;
+  const settings = { ...user.settings, ...patch };
+  db.prepare('UPDATE users SET settings = ?, time_zone = ? WHERE id = ?')
+    .run(JSON.stringify(settings), timeZone ?? user.timeZone, id);
+}
+
+// ---------- Items ----------
+
+type ItemRow = {
+  id: string; kind: string; subject: string | null; title: string; detail: string | null; notes: string | null;
+  page: string | null; exercises: string | null; book: string | null; due: string | null; time: string | null; status: string;
+  material: string | null; parent_id: string | null; attachments: string; updated_at: string; deleted: number; place?: string | null; recurrence?: string | null; recurrence_paused?: number;
+};
+
+export const toItem = (r: ItemRow): Item => ({
+  id: r.id, kind: r.kind as ItemKind, subject: r.subject, title: r.title, detail: r.detail, notes: r.notes,
+  page: r.page, exercises: r.exercises, due: r.due, time: r.time, status: r.status as ItemStatus,
+  material: r.material, parentId: r.parent_id, attachments: JSON.parse(r.attachments),
+  updatedAt: r.updated_at, deleted: !!r.deleted,
+  ...(r.place ? { place: JSON.parse(r.place) as Item['place'] } : {}),
+  ...(r.recurrence ? { recurrence: r.recurrence, recurrencePaused: !!r.recurrence_paused } : {}),
+});
+
+export interface NewItem {
+  kind: ItemKind; title: string; subject?: string | null; detail?: string | null; notes?: string | null;
+  page?: string | null; exercises?: string | null; book?: string | null; due?: string | null; time?: string | null;
+  material?: string | null; parentId?: string | null; source?: string; externalId?: string | null;
+  place?: { category: string; label: string } | null;
+  recurrence?: string | null;
+}
+
+export function createItem(userId: string, n: NewItem): Item {
+  const id = newId();
+  const ts = now();
+  db.prepare(`INSERT INTO items (id, user_id, kind, subject, title, detail, notes, page, exercises, book, due, time,
+      material, parent_id, source, external_id, created_at, updated_at, place, recurrence)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+    .run(id, userId, n.kind, n.subject ?? null, n.title, n.detail ?? null, n.notes ?? null, n.page ?? null,
+      n.exercises ?? null, n.book ?? null, n.due ?? null, n.time ?? null, n.material ?? null, n.parentId ?? null,
+      n.source ?? 'chat', n.externalId ?? null, ts, ts, n.place ? JSON.stringify(n.place) : null, n.recurrence ?? null);
+  return getItem(userId, id)!;
+}
+
+export function getItem(userId: string, id: string): Item | null {
+  const r = db.prepare('SELECT * FROM items WHERE user_id = ? AND id = ?').get(userId, id) as ItemRow | undefined;
+  return r ? toItem(r) : null;
+}
+
+export function getItemByExternalId(userId: string, externalId: string): Item | null {
+  const r = db.prepare('SELECT * FROM items WHERE user_id = ? AND external_id = ?').get(userId, externalId) as ItemRow | undefined;
+  return r ? toItem(r) : null;
+}
+
+export function getItemRaw(userId: string, id: string) {
+  return db.prepare('SELECT * FROM items WHERE user_id = ? AND id = ?').get(userId, id) as (ItemRow & { book: string | null }) | undefined;
+}
+
+const ITEM_COLUMNS: Record<string, string> = {
+  kind: 'kind', subject: 'subject', title: 'title', detail: 'detail', notes: 'notes', page: 'page',
+  exercises: 'exercises', due: 'due', time: 'time', status: 'status', material: 'material', deleted: 'deleted',
+  recurrence: 'recurrence', recurrencePaused: 'recurrence_paused',
+};
+
+export function updateItem(userId: string, id: string, patch: Partial<Item>): Item | null {
+  const sets: string[] = [];
+  const values: unknown[] = [];
+  for (const [key, value] of Object.entries(patch)) {
+    const col = ITEM_COLUMNS[key];
+    if (!col || value === undefined) continue;
+    sets.push(`${col} = ?`);
+    values.push(typeof value === 'boolean' ? Number(value) : value);
+  }
+  if (patch.attachments) { sets.push('attachments = ?'); values.push(JSON.stringify(patch.attachments)); }
+  if (!sets.length) return getItem(userId, id);
+  sets.push('updated_at = ?');
+  values.push(now(), userId, id);
+  db.prepare(`UPDATE items SET ${sets.join(', ')} WHERE user_id = ? AND id = ?`).run(...values);
+  return getItem(userId, id);
+}
+
+export function addAttachment(userId: string, itemId: string, att: Attachment) {
+  const item = getItem(userId, itemId);
+  if (!item) return;
+  updateItem(userId, itemId, { attachments: [...item.attachments, att] });
+}
+
+export function listItems(userId: string, opts: { from?: string; to?: string; includeDone?: boolean; kind?: string } = {}): Item[] {
+  const where = ['user_id = ?', 'deleted = 0'];
+  const args: unknown[] = [userId];
+  if (opts.from) { where.push('(due IS NULL OR due >= ?)'); args.push(opts.from); }
+  if (opts.to) { where.push('due <= ?'); args.push(opts.to); }
+  if (!opts.includeDone) where.push(`status = 'open'`);
+  if (opts.kind) { where.push('kind = ?'); args.push(opts.kind); }
+  const rows = db.prepare(`SELECT * FROM items WHERE ${where.join(' AND ')} ORDER BY due IS NULL, due, time`).all(...args) as ItemRow[];
+  return rows.map(toItem);
+}
+
+export function itemsChangedSince(userId: string, since: string): Item[] {
+  return (db.prepare('SELECT * FROM items WHERE user_id = ? AND updated_at > ? ORDER BY updated_at')
+    .all(userId, since) as ItemRow[]).map(toItem);
+}
+
+// ---------- Chats (Konversationen) und Nachrichten ----------
+
+/** In welchem Chat gerade geantwortet wird – gilt für alles, was während einer Chat-Anfrage passiert (auch tief in Hilfsfunktionen). */
+export const chatContext = new AsyncLocalStorage<{ userId: string; conversationId: string; detailed?: boolean; via?: ChatMessage['via'] }>();
+
+type ConversationRow = { id: string; user_id: string; title: string | null; day: string; created_at: string; updated_at: string };
+
+export function getConversation(userId: string, id: string): ConversationRow | null {
+  return (db.prepare('SELECT * FROM conversations WHERE user_id = ? AND id = ?').get(userId, id) as ConversationRow | undefined) ?? null;
+}
+
+export function createConversation(userId: string, day?: string, createdAt = now()): string {
+  const user = getUser(userId);
+  const id = newId();
+  db.prepare('INSERT INTO conversations (id, user_id, title, day, created_at, updated_at) VALUES (?, ?, NULL, ?, ?, ?)')
+    .run(id, userId, day ?? todayIn(user?.timeZone ?? 'Europe/Vienna'), createdAt, createdAt);
+  return id;
+}
+
+/** Der neueste Chat von heute (Zeitzone des Nutzers) – gibt es noch keinen, wird einer angelegt. */
+export function todayConversation(userId: string, create = true): string | null {
+  const today = todayIn(getUser(userId)?.timeZone ?? 'Europe/Vienna');
+  const row = db.prepare('SELECT id FROM conversations WHERE user_id = ? AND day = ? ORDER BY created_at DESC, rowid DESC LIMIT 1').get(userId, today) as { id: string } | undefined;
+  return row?.id ?? (create ? createConversation(userId, today) : null);
+}
+
+/** Alte Nachrichten ohne Chat pro Kalendertag (Zeitzone des Nutzers) einem Chat zuordnen. Läuft beim Start und ist danach ein No-op. */
+export function backfillConversations() {
+  const users = db.prepare('SELECT DISTINCT user_id FROM messages WHERE conversation_id IS NULL').all() as { user_id: string }[];
+  for (const { user_id } of users) {
+    const tz = getUser(user_id)?.timeZone;
+    if (!tz) continue;
+    const rows = db.prepare('SELECT id, created_at FROM messages WHERE user_id = ? AND conversation_id IS NULL ORDER BY created_at, rowid').all(user_id) as { id: string; created_at: string }[];
+    const byDay = new Map<string, { id: string; created_at: string }[]>();
+    for (const r of rows) {
+      const day = todayIn(tz, new Date(r.created_at));
+      byDay.set(day, [...(byDay.get(day) ?? []), r]);
+    }
+    db.transaction(() => {
+      for (const [day, msgs] of byDay) {
+        const first = msgs[0]!.created_at, last = msgs.at(-1)!.created_at;
+        const existing = db.prepare('SELECT id FROM conversations WHERE user_id = ? AND day = ? ORDER BY created_at LIMIT 1').get(user_id, day) as { id: string } | undefined;
+        const id = existing?.id ?? newId();
+        if (!existing) db.prepare('INSERT INTO conversations (id, user_id, title, day, created_at, updated_at) VALUES (?, ?, NULL, ?, ?, ?)').run(id, user_id, day, first, last);
+        const set = db.prepare('UPDATE messages SET conversation_id = ? WHERE id = ?');
+        for (const m of msgs) set.run(id, m.id);
+      }
+    })();
+  }
+}
+backfillConversations();
+
+type MsgRow = { id: string; client_id: string | null; role: string; text: string; attachments: string; created_at: string; action_id?: string | null; card?: string | null; via?: string | null };
+const toMessage = (r: MsgRow): ChatMessage => ({
+  id: r.id, clientId: r.client_id, role: r.role as ChatMessage['role'], text: r.text,
+  attachments: JSON.parse(r.attachments), createdAt: r.created_at,
+  ...(r.action_id ? { actionId: r.action_id } : {}),
+  ...(r.card ? { card: JSON.parse(r.card) as ChatMessage['card'] } : {}),
+  ...(r.via === 'telegram' ? { via: 'telegram' as const } : {}),
+});
+
+export function findMessageByClientId(userId: string, clientId: string): ChatMessage | null {
+  const r = db.prepare('SELECT * FROM messages WHERE user_id = ? AND client_id = ?').get(userId, clientId) as MsgRow | undefined;
+  return r ? toMessage(r) : null;
+}
+
+/**
+ * Nachricht speichern. Ohne `conversationId` landet sie im Chat, in dem gerade geantwortet wird (siehe chatContext),
+ * sonst im neuesten Chat von heute – so auch alles, was Stella von sich aus schickt (Briefing, Hinweise, Erinnerungen).
+ */
+export function addMessage(userId: string, role: ChatMessage['role'], text: string,
+  opts: { clientId?: string | null; attachments?: Attachment[]; createdAt?: string; actionId?: string; conversationId?: string; card?: ChatMessage['card']; via?: ChatMessage['via'] } = {}): ChatMessage {
+  const id = newId();
+  const ctx = chatContext.getStore();
+  const conversationId = opts.conversationId ?? (ctx?.userId === userId ? ctx.conversationId : todayConversation(userId)!);
+  const createdAt = opts.createdAt ?? now();
+  const via = opts.via ?? (ctx?.userId === userId ? ctx.via : undefined) ?? null;
+  db.prepare('INSERT INTO messages (id, user_id, client_id, role, text, attachments, created_at, action_id, conversation_id, card, via) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+    .run(id, userId, opts.clientId ?? null, role, text, JSON.stringify(opts.attachments ?? []), createdAt, opts.actionId ?? null, conversationId, opts.card ? JSON.stringify(opts.card) : null, via);
+  db.prepare('UPDATE conversations SET updated_at = ? WHERE id = ? AND updated_at < ?').run(createdAt, conversationId, createdAt);
+  return toMessage(db.prepare('SELECT * FROM messages WHERE id = ?').get(id) as MsgRow);
+}
+
+export function recentMessages(userId: string, limit = 50, before?: string): ChatMessage[] {
+  const rows = before
+    ? db.prepare('SELECT * FROM messages WHERE user_id = ? AND created_at < ? ORDER BY created_at DESC LIMIT ?').all(userId, before, limit)
+    : db.prepare('SELECT * FROM messages WHERE user_id = ? ORDER BY created_at DESC LIMIT ?').all(userId, limit);
+  return (rows as MsgRow[]).map(toMessage).reverse();
+}
+
+/** Die letzten Nachrichten eines einzelnen Chats (älteste zuerst) – nur das sieht die KI als Verlauf. */
+export function conversationMessages(userId: string, conversationId: string, limit = 50, before?: string): ChatMessage[] {
+  const rows = before
+    ? db.prepare('SELECT * FROM messages WHERE user_id = ? AND conversation_id = ? AND created_at < ? ORDER BY created_at DESC, rowid DESC LIMIT ?').all(userId, conversationId, before, limit)
+    : db.prepare('SELECT * FROM messages WHERE user_id = ? AND conversation_id = ? ORDER BY created_at DESC, rowid DESC LIMIT ?').all(userId, conversationId, limit);
+  return (rows as MsgRow[]).map(toMessage).reverse();
+}
+
+export function conversationMessagesSince(userId: string, conversationId: string, since: string): ChatMessage[] {
+  return (db.prepare('SELECT * FROM messages WHERE user_id = ? AND conversation_id = ? AND created_at > ? ORDER BY created_at, rowid')
+    .all(userId, conversationId, since) as MsgRow[]).map(toMessage);
+}
+
+export function messagesSince(userId: string, since: string): ChatMessage[] {
+  return (db.prepare('SELECT * FROM messages WHERE user_id = ? AND created_at > ? ORDER BY created_at')
+    .all(userId, since) as MsgRow[]).map(toMessage);
+}
+
+// ---------- Reminders ----------
+
+export function addReminder(userId: string, itemId: string | null, fireAt: Date, message: string, withAttachments = false,
+  always = false) {
+  db.prepare('INSERT INTO reminders (id, user_id, item_id, fire_at, message, with_attachments, always) VALUES (?, ?, ?, ?, ?, ?, ?)')
+    .run(newId(), userId, itemId, fireAt.toISOString(), message, Number(withAttachments), Number(always));
+}
+
+export function clearOpenReminders(userId: string, itemId: string) {
+  db.prepare('DELETE FROM reminders WHERE user_id = ? AND item_id = ? AND sent_at IS NULL').run(userId, itemId);
+}
+
+/** Einmal-Benachrichtigungen (z. B. "Stunde entfällt") nicht doppelt schicken */
+export function notifyOnce(userId: string, key: string): boolean {
+  const r = db.prepare('INSERT OR IGNORE INTO notified (user_id, key, created_at) VALUES (?, ?, ?)').run(userId, key, now());
+  return r.changes > 0;
+}
+
+// ---------- Pending questions ----------
+
+export type PendingType = 'exam_material' | 'due_date';
+
+export function setPending(userId: string, type: PendingType, itemId: string) {
+  db.prepare('INSERT OR REPLACE INTO pending_questions (user_id, type, item_id, created_at) VALUES (?, ?, ?, ?)')
+    .run(userId, type, itemId, now());
+}
+
+export function getPending(userId: string): { type: PendingType; itemId: string; createdAt: string } | null {
+  const r = db.prepare('SELECT type, item_id, created_at FROM pending_questions WHERE user_id = ?').get(userId) as
+    { type: PendingType; item_id: string; created_at: string } | undefined;
+  return r ? { type: r.type, itemId: r.item_id, createdAt: r.created_at } : null;
+}
+
+export function clearPending(userId: string) {
+  db.prepare('DELETE FROM pending_questions WHERE user_id = ?').run(userId);
+}
+
+// ---------- Jobs ----------
+
+export function enqueueJob(userId: string, type: string, payload: unknown, runAt = new Date()) {
+  db.prepare('INSERT INTO jobs (id, user_id, type, payload, run_at) VALUES (?, ?, ?, ?, ?)')
+    .run(newId(), userId, type, JSON.stringify(payload), runAt.toISOString());
+}

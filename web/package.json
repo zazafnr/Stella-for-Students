@@ -1,0 +1,10 @@
+{
+  "name": "@stella/students-web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Die Studenten-Web-App (students.stella.evolsior.com) – entsteht in Paket 5.",
+  "scripts": {
+    "dev": "echo 'Die Studenten-Web-App kommt mit Paket 5.' && exit 0"
+  }
+}
