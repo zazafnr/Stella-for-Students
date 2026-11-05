@@ -17,5 +17,6 @@
  "students.name": "Stella for Students",
  "planner.subjects": "Fächer",
  "planner.allSubjects": "Alle Fächer",
- "today.todayAtSchool": "Heute in der Schule"
+ "today.todayAtSchool": "Heute in der Schule",
+ "students.welcome.examples": "Hausübungen und Tests gehen auch: „Latein HÜ S. 45 Nr. 3 Freitag“ oder „Mathe SA 12.11.“."
 }

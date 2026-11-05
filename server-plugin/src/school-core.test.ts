@@ -72,3 +72,17 @@ test('Kurznotizen: mit dem Plugin ist „Französisch HÜ S. 45“ eine Hausübu
   const without = interpret(text, '2026-10-28', '12:00') as { entry?: { kind: string } } | null;
   assert.notEqual(without?.entry?.kind, 'homework');
 });
+
+test('Texte: Schulwörter für Students-Konten, neutrale Fassung für das normale Stella, Begrüßung mit Schul-Beispielen', async () => {
+  const { tr, welcomeText } = await import('../../core/server/src/locale.ts');
+  const de = { settings: { locale: 'de' as const } };
+  assert.equal(tr({ ...de, edition: 'students' }, 'today.noTests'), 'Keine Tests');
+  assert.equal(tr({ ...de, edition: 'life' }, 'today.noTests'), 'Keine Prüfungen');
+  assert.match(tr({ ...de, edition: 'students' }, 'today.noTestsHint'), /Mathe SA/);
+  assert.doesNotMatch(tr({ ...de, edition: 'life' }, 'today.noTestsHint'), /SA/);
+  assert.match(welcomeText({ ...de, edition: 'students', name: 'Mia' }), /Latein HÜ S\. 45 Nr\. 3 Freitag/);
+  assert.doesNotMatch(welcomeText({ ...de, edition: 'life', name: 'Mia' }), /Latein|HÜ|Schularbeit/);
+  for (const locale of ['en', 'es', 'fr', 'it', 'pt-BR', 'tr', 'pl'] as const) {
+    assert.notEqual(tr({ settings: { locale }, edition: 'students' }, 'students.welcome.examples'), 'students.welcome.examples', locale);
+  }
+});

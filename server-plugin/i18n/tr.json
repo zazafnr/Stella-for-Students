@@ -17,5 +17,6 @@
  "students.name": "Stella for Students",
  "planner.subjects": "Dersler",
  "planner.allSubjects": "Tüm dersler",
- "today.todayAtSchool": "Bugün okulda"
+ "today.todayAtSchool": "Bugün okulda",
+ "students.welcome.examples": "Ödev ve sınavları da anlarım: \"Latince ödevi s. 45 no. 3 cuma\" ya da \"Matematik sınavı 12.11.\"."
 }

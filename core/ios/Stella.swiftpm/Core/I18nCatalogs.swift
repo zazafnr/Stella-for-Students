@@ -213,8 +213,8 @@ enum I18nCatalogs {
  "today.studyToday": "Heute: {what}",
  "today.studyDefault": "Lernen",
  "today.inDays": "in {count} Tagen",
- "today.noTests": "Keine Tests",
- "today.noTestsHint": "Schreib z. B. „Mathe SA 12.11.“",
+ "today.noTests": "Keine Prüfungen",
+ "today.noTestsHint": "Schreib z. B. „Prüfung 12.11.“",
  "today.steps": "Schritte",
  "today.stepsCount": "{count} Schritte",
  "today.tomorrowAtSchool": "Morgen in der Schule",
@@ -229,7 +229,7 @@ enum I18nCatalogs {
  "today.importantMessages#other": "{count} wichtige Nachrichten",
  "today.inboxMeta": " · {social} Social · {trashed} Werbung gelöscht",
  "today.tellStella": "Stella etwas sagen",
- "today.tellStellaHint": "„Latein HÜ S. 20 Nr. 3 Freitag“ oder einfach fragen",
+ "today.tellStellaHint": "„Zahnarzt Freitag 15 Uhr“ oder frag einfach",
  "today.greeting.named": "{greeting}, {name}!",
  "today.greeting.plain": "{greeting}!",
  "settings.books": "Schulbücher",
@@ -725,7 +725,9 @@ enum I18nCatalogs {
  "calendar.day.entries#one": "{date}, {count} Eintrag",
  "calendar.day.entries#other": "{date}, {count} Einträge",
  "calendar.free.minutes": "{minutes} frei",
- "calendar.dragHint": "Zum Verschieben ziehen, am unteren Rand die Länge ändern."
+ "calendar.dragHint": "Zum Verschieben ziehen, am unteren Rand die Länge ändern.",
+ "onboarding.studentsHint": "Du gehst zur Schule oder studierst? Dafür gibt es Stella for Students.",
+ "onboarding.studentsHint.link": "Stella for Students öffnen"
 }
 """#,
         "en": #"""
@@ -937,8 +939,8 @@ enum I18nCatalogs {
  "today.studyToday": "Today: {what}",
  "today.studyDefault": "study",
  "today.inDays": "in {count} days",
- "today.noTests": "No tests",
- "today.noTestsHint": "Write e.g. \"Math test 12 Nov\"",
+ "today.noTests": "No exams",
+ "today.noTestsHint": "Write e.g. \"Exam 12 Nov\"",
  "today.steps": "Steps",
  "today.stepsCount": "{count} steps",
  "today.tomorrowAtSchool": "Tomorrow at school",
@@ -953,7 +955,7 @@ enum I18nCatalogs {
  "today.importantMessages#other": "{count} important messages",
  "today.inboxMeta": " · {social} social · {trashed} ads deleted",
  "today.tellStella": "Tell Stella something",
- "today.tellStellaHint": "\"Latin homework p. 20 no. 3 Friday\" or just ask",
+ "today.tellStellaHint": "\"Dentist Friday 3 pm\" or just ask",
  "today.greeting.named": "{greeting}, {name}!",
  "today.greeting.plain": "{greeting}!",
  "settings.books": "School books",
@@ -1449,7 +1451,9 @@ enum I18nCatalogs {
  "calendar.day.entries#one": "{date}, {count} entry",
  "calendar.day.entries#other": "{date}, {count} entries",
  "calendar.free.minutes": "{minutes} free",
- "calendar.dragHint": "Drag to move, pull the bottom edge to change the length."
+ "calendar.dragHint": "Drag to move, pull the bottom edge to change the length.",
+ "onboarding.studentsHint": "Going to school or studying? Stella for Students is made for that.",
+ "onboarding.studentsHint.link": "Open Stella for Students"
 }
 """#,
         "es": #"""
@@ -1662,7 +1666,7 @@ enum I18nCatalogs {
  "today.studyDefault": "estudiar",
  "today.inDays": "en {count} días",
  "today.noTests": "Sin exámenes",
- "today.noTestsHint": "Escribe, por ejemplo, «Examen de mates 12/11»",
+ "today.noTestsHint": "Escribe p. ej. «Examen 12/11»",
  "today.steps": "Pasos",
  "today.stepsCount": "{count} pasos",
  "today.tomorrowAtSchool": "Mañana en el colegio",
@@ -1677,7 +1681,7 @@ enum I18nCatalogs {
  "today.importantMessages#other": "{count} mensajes importantes",
  "today.inboxMeta": " · {social} de redes · {trashed} de publicidad borrados",
  "today.tellStella": "Cuéntale algo a Stella",
- "today.tellStellaHint": "«Deberes de latín pág. 20 n.º 3 viernes» o pregunta lo que quieras",
+ "today.tellStellaHint": "«Dentista viernes 15:00» o pregunta sin más",
  "today.greeting.named": "¡{greeting}, {name}!",
  "today.greeting.plain": "¡{greeting}!",
  "settings.books": "Libros de texto",
@@ -2173,7 +2177,9 @@ enum I18nCatalogs {
  "calendar.day.entries#one": "{date}, {count} entrada",
  "calendar.day.entries#other": "{date}, {count} entradas",
  "calendar.free.minutes": "{minutes} libres",
- "calendar.dragHint": "Arrastra para mover; tira del borde inferior para cambiar la duración."
+ "calendar.dragHint": "Arrastra para mover; tira del borde inferior para cambiar la duración.",
+ "onboarding.studentsHint": "¿Vas al colegio o estudias? Para eso existe Stella for Students.",
+ "onboarding.studentsHint.link": "Abrir Stella for Students"
 }
 """#,
         "fr": #"""
@@ -2385,8 +2391,8 @@ enum I18nCatalogs {
  "today.studyToday": "Aujourd'hui : {what}",
  "today.studyDefault": "réviser",
  "today.inDays": "dans {count} jours",
- "today.noTests": "Pas de contrôle",
- "today.noTestsHint": "Écris par ex. « Contrôle de maths 12/11 »",
+ "today.noTests": "Aucun examen",
+ "today.noTestsHint": "Écris par ex. « Examen 12/11 »",
  "today.steps": "Pas",
  "today.stepsCount": "{count} pas",
  "today.tomorrowAtSchool": "Demain à l'école",
@@ -2401,7 +2407,7 @@ enum I18nCatalogs {
  "today.importantMessages#other": "{count} messages importants",
  "today.inboxMeta": " · {social} réseaux · {trashed} pubs supprimées",
  "today.tellStella": "Dis quelque chose à Stella",
- "today.tellStellaHint": "« Devoirs de latin p. 20 n° 3 vendredi » ou pose simplement ta question",
+ "today.tellStellaHint": "« Dentiste vendredi 15 h » ou pose simplement ta question",
  "today.greeting.named": "{greeting} {name} !",
  "today.greeting.plain": "{greeting} !",
  "settings.books": "Manuels",
@@ -2897,7 +2903,9 @@ enum I18nCatalogs {
  "calendar.day.entries#one": "{date}, {count} entrée",
  "calendar.day.entries#other": "{date}, {count} entrées",
  "calendar.free.minutes": "{minutes} libres",
- "calendar.dragHint": "Fais glisser pour déplacer, tire le bord inférieur pour changer la durée."
+ "calendar.dragHint": "Fais glisser pour déplacer, tire le bord inférieur pour changer la durée.",
+ "onboarding.studentsHint": "Tu vas à l’école ou tu étudies ? Stella for Students est faite pour ça.",
+ "onboarding.studentsHint.link": "Ouvrir Stella for Students"
 }
 """#,
         "it": #"""
@@ -3109,8 +3117,8 @@ enum I18nCatalogs {
  "today.studyToday": "Oggi: {what}",
  "today.studyDefault": "studio",
  "today.inDays": "tra {count} giorni",
- "today.noTests": "Nessuna verifica",
- "today.noTestsHint": "Scrivi ad es. «Verifica di matematica 12/11»",
+ "today.noTests": "Nessun esame",
+ "today.noTestsHint": "Scrivi ad es. «Esame 12/11»",
  "today.steps": "Passi",
  "today.stepsCount": "{count} passi",
  "today.tomorrowAtSchool": "Domani a scuola",
@@ -3125,7 +3133,7 @@ enum I18nCatalogs {
  "today.importantMessages#other": "{count} messaggi importanti",
  "today.inboxMeta": " · {social} social · {trashed} pubblicità eliminate",
  "today.tellStella": "Scrivi qualcosa a Stella",
- "today.tellStellaHint": "«Compiti di latino p. 20 n. 3 venerdì» oppure chiedi pure",
+ "today.tellStellaHint": "«Dentista venerdì 15:00» o chiedi e basta",
  "today.greeting.named": "{greeting}, {name}!",
  "today.greeting.plain": "{greeting}!",
  "settings.books": "Libri di testo",
@@ -3621,7 +3629,9 @@ enum I18nCatalogs {
  "calendar.day.entries#one": "{date}, {count} voce",
  "calendar.day.entries#other": "{date}, {count} voci",
  "calendar.free.minutes": "{minutes} liberi",
- "calendar.dragHint": "Trascina per spostare, tira il bordo inferiore per cambiare la durata."
+ "calendar.dragHint": "Trascina per spostare, tira il bordo inferiore per cambiare la durata.",
+ "onboarding.studentsHint": "Vai a scuola o studi? Per questo c’è Stella for Students.",
+ "onboarding.studentsHint.link": "Apri Stella for Students"
 }
 """#,
         "pl": #"""
@@ -3833,8 +3843,8 @@ enum I18nCatalogs {
  "today.studyToday": "Dziś: {what}",
  "today.studyDefault": "nauka",
  "today.inDays": "za {count} dni",
- "today.noTests": "Brak sprawdzianów",
- "today.noTestsHint": "Napisz np. „Sprawdzian z matmy 12.11.”",
+ "today.noTests": "Brak egzaminów",
+ "today.noTestsHint": "Napisz np. „Egzamin 12.11.”",
  "today.steps": "Kroki",
  "today.stepsCount": "{count} kroków",
  "today.tomorrowAtSchool": "Jutro w szkole",
@@ -3849,7 +3859,7 @@ enum I18nCatalogs {
  "today.importantMessages#other": "{count} ważnych wiadomości",
  "today.inboxMeta": " · {social} z mediów społecznościowych · {trashed} reklam usuniętych",
  "today.tellStella": "Napisz coś do Stelli",
- "today.tellStellaHint": "„Zadanie z łaciny s. 20 nr 3 piątek” albo po prostu zapytaj",
+ "today.tellStellaHint": "„Dentysta piątek 15:00” albo po prostu zapytaj",
  "today.greeting.named": "{greeting}, {name}!",
  "today.greeting.plain": "{greeting}!",
  "settings.books": "Podręczniki",
@@ -4369,7 +4379,9 @@ enum I18nCatalogs {
  "calendar.day.entries#many": "{date}, {count} wpisów",
  "calendar.day.entries#other": "{date}, {count} wpisu",
  "calendar.free.minutes": "{minutes} wolne",
- "calendar.dragHint": "Przeciągnij, aby przenieść; pociągnij dolną krawędź, aby zmienić czas."
+ "calendar.dragHint": "Przeciągnij, aby przenieść; pociągnij dolną krawędź, aby zmienić czas.",
+ "onboarding.studentsHint": "Chodzisz do szkoły lub studiujesz? Do tego jest Stella for Students.",
+ "onboarding.studentsHint.link": "Otwórz Stella for Students"
 }
 """#,
         "pt-BR": #"""
@@ -4581,8 +4593,8 @@ enum I18nCatalogs {
  "today.studyToday": "Hoje: {what}",
  "today.studyDefault": "estudar",
  "today.inDays": "em {count} dias",
- "today.noTests": "Sem provas",
- "today.noTestsHint": "Escreva, por exemplo, «Prova de matemática 12/11»",
+ "today.noTests": "Nenhuma prova",
+ "today.noTestsHint": "Escreva, por exemplo, «Prova 12/11»",
  "today.steps": "Passos",
  "today.stepsCount": "{count} passos",
  "today.tomorrowAtSchool": "Amanhã na escola",
@@ -4597,7 +4609,7 @@ enum I18nCatalogs {
  "today.importantMessages#other": "{count} mensagens importantes",
  "today.inboxMeta": " · {social} de redes sociais · {trashed} propagandas apagadas",
  "today.tellStella": "Conte algo para a Stella",
- "today.tellStellaHint": "«Lição de latim p. 20 n.º 3 sexta» ou pergunte à vontade",
+ "today.tellStellaHint": "«Dentista sexta 15h» ou é só perguntar",
  "today.greeting.named": "{greeting}, {name}!",
  "today.greeting.plain": "{greeting}!",
  "settings.books": "Livros didáticos",
@@ -5093,7 +5105,9 @@ enum I18nCatalogs {
  "calendar.day.entries#one": "{date}, {count} item",
  "calendar.day.entries#other": "{date}, {count} itens",
  "calendar.free.minutes": "{minutes} livres",
- "calendar.dragHint": "Arraste para mover; puxe a borda inferior para mudar a duração."
+ "calendar.dragHint": "Arraste para mover; puxe a borda inferior para mudar a duração.",
+ "onboarding.studentsHint": "Você vai à escola ou estuda? O Stella for Students foi feito para isso.",
+ "onboarding.studentsHint.link": "Abrir o Stella for Students"
 }
 """#,
         "tr": #"""
@@ -5306,7 +5320,7 @@ enum I18nCatalogs {
  "today.studyDefault": "çalışma",
  "today.inDays": "{count} gün sonra",
  "today.noTests": "Sınav yok",
- "today.noTestsHint": "Örneğin \"Matematik sınavı 12.11.\" yaz",
+ "today.noTestsHint": "Örneğin \"Sınav 12.11.\" yaz",
  "today.steps": "Adım",
  "today.stepsCount": "{count} adım",
  "today.tomorrowAtSchool": "Yarın okulda",
@@ -5321,7 +5335,7 @@ enum I18nCatalogs {
  "today.importantMessages#other": "{count} önemli mesaj",
  "today.inboxMeta": " · {social} sosyal medya · {trashed} reklam silindi",
  "today.tellStella": "Stella'ya bir şey söyle",
- "today.tellStellaHint": "\"Latince ödevi s. 20 no. 3 cuma\" yaz ya da doğrudan sor",
+ "today.tellStellaHint": "\"Cuma 15:00 diş hekimi\" ya da sadece sor",
  "today.greeting.named": "{greeting} {name}!",
  "today.greeting.plain": "{greeting}!",
  "settings.books": "Ders kitapları",
@@ -5817,7 +5831,9 @@ enum I18nCatalogs {
  "calendar.day.entries#one": "{date}, {count} kayıt",
  "calendar.day.entries#other": "{date}, {count} kayıt",
  "calendar.free.minutes": "{minutes} boş",
- "calendar.dragHint": "Taşımak için sürükle, süreyi değiştirmek için alt kenarı çek."
+ "calendar.dragHint": "Taşımak için sürükle, süreyi değiştirmek için alt kenarı çek.",
+ "onboarding.studentsHint": "Okula mı gidiyorsun, yoksa üniversitede mi okuyorsun? Stella for Students tam bunun için.",
+ "onboarding.studentsHint.link": "Stella for Students’ı aç"
 }
 """#,
     ]

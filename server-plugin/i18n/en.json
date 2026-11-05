@@ -17,5 +17,6 @@
  "students.name": "Stella for Students",
  "planner.subjects": "Subjects",
  "planner.allSubjects": "All subjects",
- "today.todayAtSchool": "Today at school"
+ "today.todayAtSchool": "Today at school",
+ "students.welcome.examples": "Homework works too: \"Latin homework p. 45 no. 3 Friday\" or \"Math test 12 Nov\"."
 }

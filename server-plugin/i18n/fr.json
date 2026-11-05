@@ -17,5 +17,6 @@
  "students.name": "Stella for Students",
  "planner.subjects": "Matières",
  "planner.allSubjects": "Toutes les matières",
- "today.todayAtSchool": "Aujourd’hui à l’école"
+ "today.todayAtSchool": "Aujourd’hui à l’école",
+ "students.welcome.examples": "Je comprends aussi les devoirs et les contrôles : « Devoirs de latin p. 45 n° 3 vendredi » ou « Contrôle de maths 12/11 »."
 }
