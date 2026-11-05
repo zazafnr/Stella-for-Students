@@ -1,4 +1,3 @@
-// Kern-Spiegel – nicht hier ändern, Änderungen in Stella-Life-Assistent
 // Schreibt Text "per Hand" auf liniertes Heftpapier (PNG).
 //
 // Damit es nach DEINER Schrift aussieht: auf calligraphr.com eine Vorlage ausdrucken, mit deinem
@@ -9,26 +8,26 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, unlinkSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
-import { config } from './config.ts';
+import { config } from './runtime.ts';
 import { getBrowser } from './browser.ts';
 
 const require = createRequire(import.meta.url);
-const fontDir = path.join(config.dataDir, 'fonts');
+const fontDirOf = () => path.join(config.dataDir, 'fonts');
 
 const FONT_TYPES: Record<string, string> = { ttf: 'font/ttf', otf: 'font/otf', woff: 'font/woff', woff2: 'font/woff2' };
 
 export function userFontPath(userId: string): string | null {
-  if (!existsSync(fontDir)) return null;
-  const file = readdirSync(fontDir).find((f) => f.startsWith(`${userId}.`));
-  return file ? path.join(fontDir, file) : null;
+  if (!existsSync(fontDirOf())) return null;
+  const file = readdirSync(fontDirOf()).find((f) => f.startsWith(`${userId}.`));
+  return file ? path.join(fontDirOf(), file) : null;
 }
 
 export function saveUserFont(userId: string, data: Buffer, ext: string) {
   if (!FONT_TYPES[ext]) throw new Error('Nur .ttf, .otf, .woff oder .woff2');
-  mkdirSync(fontDir, { recursive: true });
+  mkdirSync(fontDirOf(), { recursive: true });
   const old = userFontPath(userId);
   if (old) unlinkSync(old);
-  writeFileSync(path.join(fontDir, `${userId}.${ext}`), data);
+  writeFileSync(path.join(fontDirOf(), `${userId}.${ext}`), data);
 }
 
 export function deleteUserFont(userId: string) {

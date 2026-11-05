@@ -1,4 +1,3 @@
-// Kern-Spiegel – nicht hier ändern, Änderungen in Stella-Life-Assistent
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtempSync } from 'node:fs';

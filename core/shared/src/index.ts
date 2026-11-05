@@ -1,6 +1,7 @@
 // Kern-Spiegel – nicht hier ändern, Änderungen in Stella-Life-Assistent
 export * from './dates.ts';
 export * from './parser.ts';
+export * from './parser.vocab.ts';
 export * from './places.ts';
 export * from './planning.ts';
 export * from './recurrence.ts';

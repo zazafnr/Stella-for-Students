@@ -1,13 +1,12 @@
-// Kern-Spiegel – nicht hier ändern, Änderungen in Stella-Life-Assistent
 // Verbindung zu FreeNotes (iPad-Heft-App): Gelöste HÜs warten hier, bis FreeNotes sie abholt
 // und Strich für Strich in deiner Handschrift ins passende Fach-Heft schreibt.
 
 import { addDays, t, todayIn } from '@stella/shared';
-import { db, getUser, notifyOnce, now } from './db.ts';
-import { config } from './config.ts';
-import { userLocale } from './locale.ts';
-import { pushToUser } from './push.ts';
-import { mailerConfigured, sendTemplateMail } from './mailer.ts';
+import { db, getUser, notifyOnce, now } from './runtime.ts';
+import { config } from './runtime.ts';
+import { userLocale } from './runtime.ts';
+import { pushToUser } from './runtime.ts';
+import { mailerConfigured, sendTemplateMail } from './runtime.ts';
 
 export interface NotesEntry {
   id: string;

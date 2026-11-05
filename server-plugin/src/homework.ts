@@ -1,19 +1,18 @@
-// Kern-Spiegel – nicht hier ändern, Änderungen in Stella-Life-Assistent
 // HÜ-Autopilot: Aufgabe vom Buchseiten-Foto lesen, lösen und "per Hand" ins Heft schreiben.
 // Danach ist die HÜ erledigt – am Vorabend kommt nur noch: "✅ Latein HÜ erledigt".
 
 import { readFileSync } from 'node:fs';
 import { addDays, DEFAULT_PREFS, formatDateDe, WEEKDAYS_DE, weekdayOf, zonedToUtc, voice, type Attachment, type Item } from '@stella/shared';
-import { addAttachment, addMessage, addReminder, enqueueJob, getItem, getUser, type User } from './db.ts';
+import { addAttachment, addMessage, addReminder, enqueueJob, getItem, getUser, type User } from './runtime.ts';
 import { renderHandwriting } from './handwriting.ts';
-import { complete, type ContentPart } from './llm.ts';
-import { changeItem } from './planner.ts';
-import { notify } from './channels/deliver.ts';
-import { filePath, saveFile } from './files.ts';
+import { complete, type ContentPart } from './runtime.ts';
+import { changeItem } from './runtime.ts';
+import { notify } from './runtime.ts';
+import { filePath, saveFile } from './runtime.ts';
 import { usesFreeNotes } from './notes.ts';
-import { voiceOf } from './locale.ts';
-import { consumeQuota } from './billing.ts';
-import { resolveTier } from './router.ts';
+import { voiceOf } from './runtime.ts';
+import { consumeQuota } from './runtime.ts';
+import { resolveTier } from './runtime.ts';
 
 export const SOLUTION_CAPTION = 'Lösung';
 

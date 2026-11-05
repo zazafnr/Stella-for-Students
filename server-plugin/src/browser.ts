@@ -1,4 +1,3 @@
-// Kern-Spiegel – nicht hier ändern, Änderungen in Stella-Life-Assistent
 // Gemeinsamer unsichtbarer Browser (Playwright) für Schulbücher und Handschrift-Bilder.
 
 type Browser = import('playwright').Browser;

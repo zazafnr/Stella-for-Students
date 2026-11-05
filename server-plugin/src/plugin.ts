@@ -1,28 +1,20 @@
-// Kern-Spiegel – nicht hier ändern, Änderungen in Stella-Life-Assistent
-// Eingebautes Schul-Plugin (Edition `students`): WebUntis, Schulbücher, HÜ-Autopilot, Handschrift und FreeNotes.
-// Die Module liegen vorerst noch in diesem Repo; mit Paket 3 ziehen sie samt diesem Plugin nach Stella-for-Students
-// (server-plugin/) um. Der Kern kennt sie nur noch über die Registry (registry.ts).
-//
-// Wird nicht geladen, wenn STELLA_EDITION_STUDENTS=off gesetzt ist – dann läuft das normale Stella ohne Schulfunktionen.
+// Das Edition-Plugin „students“: WebUntis, Schulbücher, HÜ-Autopilot, Handschrift und FreeNotes.
+// Der Server lädt es über `index.ts`; vom Kern kommen nur Typen und die Plugin-API (runtime.ts).
 
 import type { FastifyInstance, FastifyRequest } from 'fastify';
-import { addDays, todayIn } from '@stella/shared';
-import { deleteSecret, hasSecret, HttpError, requireOwner, setSecret } from '../auth.ts';
-import { announceFreenotes, ackNotesEntry, notesInbox, usesFreeNotes } from '../notes.ts';
-import { addMessage, db, enqueueJob, getItem, getUser, notifyOnce, now, type BookProvider } from '../db.ts';
-import { fetchBookPage, getBookCredentials, listShelf, LOGIN_PAGES, normalizeCookies, PROVIDERS, saveBookCredentials, screenshotPage, secretName } from '../books.ts';
-import { deleteUserFont, renderHandwriting, saveUserFont, userFontPath } from '../handwriting.ts';
-import { lessonsFor, nextLessonDate, syncUntis, testUntis, type UntisCredentials } from '../untis.ts';
-import { solveHomework } from '../homework.ts';
-import { saveFile } from '../files.ts';
-import { levelFor } from '../actions.ts';
-import { bookFor } from '../planner.ts';
-import { hasFeature, isSchool } from '../profile.ts';
-import { formatDateDe } from '@stella/shared';
-import { toMin, type Busy } from '../context.ts';
-import { tr, userTerms, voiceOf } from '../locale.ts';
+import { addDays, formatDateDe, todayIn } from '@stella/shared';
 import type { Item } from '@stella/shared';
-import type { FoundHintLike, EditionPlugin, Lesson } from './registry.ts';
+import {
+  addMessage, changeItem, db, deleteSecret, enqueueJob, getItem, getUser, hasFeature, hasSecret, HttpError, isSchool, levelFor, notifyOnce, now,
+  bookFor, requireOwner, setSecret, toMin, tr, userTerms, voiceOf, type BookProvider, type Busy, type EditionPlugin, type Lagebild, type Lesson, type User,
+} from './runtime.ts';
+import { announceFreenotes, ackNotesEntry, notesInbox, usesFreeNotes } from './notes.ts';
+import { fetchBookPage, getBookCredentials, listShelf, LOGIN_PAGES, normalizeCookies, PROVIDERS, saveBookCredentials, screenshotPage, secretName } from './books.ts';
+import { deleteUserFont, renderHandwriting, saveUserFont, userFontPath } from './handwriting.ts';
+import { lessonsFor, nextLessonDate, syncUntis, testUntis, type UntisCredentials } from './untis.ts';
+import { solveHomework } from './homework.ts';
+import { saveFile } from './runtime.ts';
+import { SCHOOL_PARSER } from './parser-words.ts';
 
 const str = (v: unknown, max = 4000) => (typeof v === 'string' ? v.slice(0, max) : '');
 
@@ -148,8 +140,8 @@ function registerSchoolRoutes(api: FastifyInstance) {
 
 // ---------- Hinweise (Entfall mit offener HÜ, HÜ ohne Quelle) ----------
 
-function schoolHints(user: import('../db.ts').User, lb: import('../context.ts').Lagebild): FoundHintLike[] {
-  const out: FoundHintLike[] = [];
+function schoolHints(user: User, lb: Lagebild): NonNullable<ReturnType<NonNullable<EditionPlugin['hints']>>> {
+  const out: ReturnType<NonNullable<EditionPlugin['hints']>> = [];
   const v = voiceOf(user);
   const tomorrow = addDays(lb.today, 1);
   const tomorrowDay = lb.days.find((d) => d.date === tomorrow);
@@ -211,13 +203,45 @@ const TOOLS: NonNullable<EditionPlugin['tools']> = [
 
 const hasNoTimetable = (userId: string) => !(db.prepare('SELECT 1 FROM lessons WHERE user_id = ? LIMIT 1').get(userId));
 
+// ---------- Aktion: HÜ lösen ----------
+
+const itemTitle = (u: User, id: string) => getItem(u.id, id)?.title ?? 'HÜ';
+
+const HOMEWORK_SOLVE = {
+  group: () => 'homework',
+  summary: (u: User, p: { itemId: string }) => `${itemTitle(u, p.itemId)} lösen und ins Heft schreiben`,
+  run: (u: User, p: { itemId: string; again?: boolean }) => {
+    let item = getItem(u.id, p.itemId);
+    if (!item) throw new Error('HÜ nicht gefunden');
+    if (p.again) {
+      // alte Lösung entfernen, damit neu gelöst (und erneut ins Heft geschrieben) wird
+      db.prepare('DELETE FROM notes_deliveries WHERE user_id = ? AND item_id = ?').run(u.id, item.id);
+      item = changeItem(u, item.id, {
+        status: 'open', notes: null, attachments: item.attachments.filter((a) => !a.caption?.startsWith('Lösung')),
+      })!;
+    }
+    if (!item.attachments.length && !(item.page && bookFor(u, item.subject))) {
+      throw new Error('Kein Foto und kein Buch hinterlegt – bitte ein Foto der Aufgabe schicken.');
+    }
+    enqueueJob(u.id, item.attachments.length ? 'solve_homework' : 'book_page', { itemId: item.id });
+    return { result: { ok: true, info: 'Wird im Hintergrund gelöst, der Nutzer bekommt eine Nachricht.' }, changed: [item] };
+  },
+};
+
 // ---------- Das Plugin ----------
 
-export const schoolPlugin: EditionPlugin = {
+export const studentsPlugin: EditionPlugin = {
   id: 'students',
   edition: 'students',
   routes: registerSchoolRoutes,
   tools: TOOLS,
+  parser: SCHOOL_PARSER,
+  actions: {
+    groups: {
+      homework: { label: 'HÜs lösen', help: 'lösen und in deiner Handschrift ins Heft schreiben', default: 'auto', levels: ['auto', 'notify', 'ask', 'never'] },
+    },
+    defs: { 'homework.solve': HOMEWORK_SOLVE },
+  },
 
   prompt: (user) => {
     if (!isSchool(user)) return {};

@@ -15,7 +15,6 @@ const { editions, resetEditions } = await import('../../core/server/src/editions
 test('das Plugin lässt sich vom Server-Lader einhängen und liefert eine gültige Antwort', async () => {
   resetEditions();
   const res = await loadEditions(path.resolve(import.meta.dirname, '..'));
-  // Paket 2: das Plugin ist noch ein Platzhalter (null) → der Server fällt auf sein eingebautes Plugin zurück
-  assert.equal(res.loaded.length, 1);
+  assert.deepEqual(res, { loaded: ['students'], source: 'external' });
   assert.equal(editions().length, 1);
 });

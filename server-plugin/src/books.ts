@@ -1,4 +1,3 @@
-// Kern-Spiegel – nicht hier ändern, Änderungen in Stella-Life-Assistent
 // E-Book-Seiten holen (digi4school, scook): Stella meldet sich mit deinen Zugangsdaten an,
 // öffnet das Buch zum Fach, springt zur Seite der HÜ und speichert die Buchseite als Bild.
 //
@@ -9,13 +8,13 @@
 
 import { existsSync, rmSync } from 'node:fs';
 import path from 'node:path';
-import { config } from './config.ts';
-import { getSecret, setSecret } from './auth.ts';
+import { config } from './runtime.ts';
+import { getSecret, setSecret } from './runtime.ts';
 import { getBrowser } from './browser.ts';
-import { addAttachment, addMessage, enqueueJob, getUser, type BookProvider } from './db.ts';
-import { saveFile } from './files.ts';
-import { bookForItem } from './planner.ts';
-import { levelFor, perform } from './actions.ts';
+import { addAttachment, addMessage, enqueueJob, getUser, type BookProvider } from './runtime.ts';
+import { saveFile } from './runtime.ts';
+import { bookForItem } from './runtime.ts';
+import { levelFor, perform } from './runtime.ts';
 
 type Page = import('playwright').Page;
 type Frame = import('playwright').Frame;

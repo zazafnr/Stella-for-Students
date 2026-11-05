@@ -1,4 +1,3 @@
-// Kern-Spiegel – nicht hier ändern, Änderungen in Stella-Life-Assistent
 // WebUntis: Stundenplan, Entfall, Hausübungen und Tests/Schularbeiten automatisch übernehmen.
 //
 // Zwei Login-Wege:
@@ -8,13 +7,13 @@
 //    (untis://setschool?...) in Stella einfügen.
 
 import { addDays, normalizeSubject, todayIn, voice, type Ymd } from '@stella/shared';
-import { getSecret } from './auth.ts';
+import { getSecret } from './runtime.ts';
 import {
   addMessage, db, getItemByExternalId, getUser, notifyOnce, type User,
-} from './db.ts';
-import { addItem, changeItem } from './planner.ts';
-import { notify } from './channels/deliver.ts';
-import { voiceOf } from './locale.ts';
+} from './runtime.ts';
+import { addItem, changeItem } from './runtime.ts';
+import { notify } from './runtime.ts';
+import { voiceOf } from './runtime.ts';
 
 export interface UntisCredentials {
   server?: string;
