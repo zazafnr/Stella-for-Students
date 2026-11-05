@@ -1,0 +1,20 @@
+{
+  "commit": "a2b7a0d52916ce3e8f1bdfea27d3617efa1561d3",
+  "branch": "claude/nice-goldberg-0c4br0",
+  "message": "CI iOS: Scheme-Namen der Studenten-App selbst ermitteln",
+  "run": "https://github.com/zazafnr/Stella-for-Students/actions/runs/42102263934",
+  "device": "iPhone 16 Pro",
+  "createdAt": "2026-11-05T20:29:03+00:00",
+  "screens": [
+    "today",
+    "chat",
+    "planner",
+    "learn",
+    "inbox",
+    "weekplan",
+    "settings",
+    "plan",
+    "subscription"
+  ],
+  "appetize": null
+}
