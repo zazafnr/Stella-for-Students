@@ -26,6 +26,8 @@
   --tabbar-h: 64px;
   --hero-from: #DCD2FF; --hero-via: #EDE8FF; --hero-to: #FFF1CC;
   --pink: #E8548C; --pink-text: #B3235F; --pink-tint: #FFE6F0;
+  /* Kalender: Farbe je Art */
+  --cal-event: #6D4AFF; --cal-exam: #E8548C; --cal-study: #14A38B; --cal-assignment: #D99A00; --cal-goal: #8F74FF; --cal-lesson: #A996FF;
   /* Fristen und Hinweise */
   --deadline: #FFC94A;
   --deadline-text: #7A5200;

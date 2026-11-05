@@ -2,12 +2,12 @@
 import { createReadStream, existsSync } from 'node:fs';
 import path from 'node:path';
 import Fastify, { type FastifyRequest } from 'fastify';
-import fastifyStatic from '@fastify/static';
 import { addDays, isCountry, isLocale, isLocationPermission, isTone, todayIn, voice, type Item } from '@stella/shared';
 import { userLocale } from './locale.ts';
 import type { ActionGroup } from '@stella/shared';
 import { pluginIcal, pluginIntegrations, pluginRoutes, pluginSettings, pluginOnboarding, editions, requestEdition } from './editions/registry.ts';
 import { loadEditions } from './editions/load.ts';
+import { registerWebApps } from './webapps.ts';
 import { editionUrl } from './editions/access.ts';
 import { registerUndoRoutes } from './email/undo.ts';
 import { currentPlanId, maxMailboxes, registerBillingRoutes, registerBillingWebhook } from './billing.ts';
@@ -45,6 +45,7 @@ import { acceptHint, dismissHint } from './hints.ts';
 import { registerAdminRoutes } from './admin.ts';
 import { linkVerifiedAddress, registerAddressRoutes, registerInboundRoute } from './inbound.ts';
 import { registerOverviewRoutes } from './overview.ts';
+import { registerCalendarRoutes } from './calendar.ts';
 import { registerFinanceRoutes, recordPayment } from './finance.ts';
 import { registerGoalRoutes } from './goals.ts';
 import { registerStellaPlanRoutes } from './stellaplan.ts';
@@ -226,6 +227,7 @@ app.register(async (api) => {
   registerAdminRoutes(api);
   pluginRoutes(api);
   registerOverviewRoutes(api);
+  registerCalendarRoutes(api);
   registerAddressRoutes(api);
   registerListRoutes(api);
   registerGoalRoutes(api);
@@ -387,12 +389,14 @@ app.register(async (api) => {
     return addItem(req.user, {
       kind: b.kind, title: str(b.title, 200), subject: b.subject ?? null, detail: b.detail ?? null, notes: b.notes ?? null,
       due: b.due ?? null, time: b.time ?? null, material: b.material ?? null, source: 'app',
+      duration: Number.isFinite(Number(b.duration)) && Number(b.duration) > 0 ? Math.min(Math.round(Number(b.duration)), 24 * 60) : null,
+      location: b.location ? str(b.location, 200) : null,
     });
   });
 
   api.patch('/api/items/:id', async (req: FastifyRequest<{ Params: { id: string } }>) => {
     const b = req.body as Partial<Item>;
-    const allowed: (keyof Item)[] = ['title', 'detail', 'notes', 'due', 'time', 'status', 'material', 'subject', 'kind'];
+    const allowed: (keyof Item)[] = ['title', 'detail', 'notes', 'due', 'time', 'status', 'material', 'subject', 'kind', 'duration', 'location'];
     const patch = Object.fromEntries(Object.entries(b).filter(([k]) => allowed.includes(k as keyof Item)));
     const item = changeItem(req.user, req.params.id, patch);
     if (!item) throw new HttpError(404, 'Nicht gefunden');
@@ -647,21 +651,7 @@ app.register(async (api) => {
 
 // ---------- Web-App ausliefern ----------
 
-if (existsSync(config.webDist)) {
-  await app.register(fastifyStatic, {
-    root: config.webDist,
-    wildcard: false,
-    setHeaders: (res, filePath) => {
-      // Service Worker & HTML immer frisch, gehashte Assets ewig cachen
-      if (filePath.includes(`${path.sep}assets${path.sep}`)) res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-      else res.setHeader('Cache-Control', 'no-cache');
-    },
-  });
-  app.setNotFoundHandler((req, reply) => {
-    if (req.url.startsWith('/api/')) return reply.code(404).send({ error: 'Nicht gefunden' });
-    return reply.header('Cache-Control', 'no-cache').sendFile('index.html');
-  });
-}
+await registerWebApps(app, { life: config.webDist, students: config.studentsWebDist });
 
 startScheduler();
 await app.listen({ port: config.port, host: config.host });

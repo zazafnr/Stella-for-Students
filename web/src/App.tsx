@@ -3,7 +3,7 @@ import { startWeatherOnce } from '@stella/web-core/weather.ts';
 import { meHas, meIsSchool, newConversation, refreshMe, startBackgroundSync, useStore } from '@stella/web-core/store.ts';
 import { Today } from './components/Today.tsx';
 import { Chat } from '@stella/web-core/components/Chat.tsx';
-import { Planner } from './components/Planner.tsx';
+import { PlannerTab } from './components/PlannerTab.tsx';
 import { Learn } from './components/Learn.tsx';
 import { Inbox } from '@stella/web-core/components/Inbox.tsx';
 import { Goals } from '@stella/web-core/components/Goals.tsx';
@@ -33,7 +33,7 @@ const TABS: [Tab, IconName, string][] = [
 const ALL: Tab[] = ['today', 'chat', 'planner', 'learn', 'goals', 'inbox', 'health', 'plan', 'settings'];
 
 function initialTab(): Tab {
-  const hash = location.hash.slice(1) as Tab;
+  const hash = location.hash.slice(1).split('/')[0] as Tab;
   return ALL.includes(hash) ? hash : 'today';
 }
 
@@ -143,7 +143,7 @@ export function App() {
         <Topbar title={titleOf(tab)} onSearch={() => setPalette(true)} />
         {tab === 'today' && <Today go={setTab} />}
         {tab === 'chat' && <Chat />}
-        {tab === 'planner' && <Planner />}
+        {tab === 'planner' && <PlannerTab />}
         {tab === 'learn' && <Learn />}
         {tab === 'goals' && <Goals />}
         {tab === 'inbox' && <Inbox />}

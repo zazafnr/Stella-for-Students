@@ -36,7 +36,7 @@ const day = (n) => { const d = new Date(Date.now() + n * 864e5); return d.toISOS
   page.on('pageerror', (e) => errors.push('pageerror: ' + e.message));
   await page.goto(BASE);
   await page.evaluate(({ tk, me, PREFIX, LOC }) => {
-    localStorage.setItem('evolsiorIntroShown', '1'); localStorage.setItem(`${PREFIX}.locale`, LOC);
+    localStorage.setItem('evolsiorIntroShown', '1'); localStorage.setItem(`${PREFIX}.locale`, LOC); localStorage.setItem('students.plannerMode', 'calendar');
     localStorage.setItem(`${PREFIX}-state-v1`, JSON.stringify({ token: tk, me, items: {}, messages: [], outbox: [], lastSync: null, online: true, thinking: false, busyItems: [], actions: {}, conversationId: null, pinned: false, current: null, conversations: [] }));
   }, { tk: reg.token, me, PREFIX, LOC });
   for (const tab of TABS) {
