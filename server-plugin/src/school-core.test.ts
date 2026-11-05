@@ -30,7 +30,7 @@ const job = mk('Mia', { situation: 'work', features: ['planner', 'mails', 'shopp
 
 test('das Plugin hängt sich als „students“ ein', () => {
   assert.deepEqual(res.loaded, ['students']);
-  assert.deepEqual(pluginTools(getUser(school)!).map((t) => t.def.function.name), ['solve_homework', 'timetable']);
+  assert.deepEqual(pluginTools(getUser(school)!).map((t) => t.def.function.name).sort(), ['grade_average', 'solve_homework', 'timetable']);
   assert.deepEqual(Object.keys(pluginActionGroups()), ['homework']);
 });
 
