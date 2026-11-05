@@ -5,6 +5,7 @@ import { useT } from '@stella/web-core/i18n.ts';
 import { Icon } from '@stella/web-core/ui/Icon.tsx';
 import { subjectColor } from '../subjectColor.ts';
 import { Cards } from './Cards.tsx';
+import { Notes } from './Notes.tsx';
 
 /** „Lernen“: Lernplan der Woche, Prüfungen mit Stoff und Lernstand; Lernkarten und Mitschriften füllen sich in den nächsten Paketen. */
 export function Learn() {
@@ -82,7 +83,7 @@ export function Learn() {
 
         <section className="learn-section" aria-labelledby="learn-notes">
           <h2 id="learn-notes">{t('learn.notes.title')}</h2>
-          <div className="learn-soon">{t('learn.notes.soon')}</div>
+          <Notes />
         </section>
       </div>
     </div>

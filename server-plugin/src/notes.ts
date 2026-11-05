@@ -24,8 +24,19 @@ export function usesFreeNotes(userId: string): boolean {
   return !!db.prepare(`SELECT 1 FROM notified WHERE user_id = ? AND key = 'freenotes-connected'`).get(userId);
 }
 
+/** Mitschrift-Zusammenfassungen, die der Nutzer „ins Heft schreiben“ lassen will (nur Text, ohne Markierungen) */
+function summaryInbox(userId: string): NotesEntry[] {
+  return (db.prepare(`SELECT id, subject, title, text, created_at FROM notes_summaries WHERE user_id = ? AND status = 'done' AND to_notebook = 1 AND delivered_at IS NULL ORDER BY created_at`).all(userId) as
+    { id: string; subject: string | null; title: string; text: string; created_at: string }[])
+    .map((r) => ({ id: r.id, subject: r.subject, title: r.title, page: null, exercises: null, due: null, text: `__${r.title}__\n\n${r.text.replace(/^[•★] /gm, '')}`, created: r.created_at }));
+}
+
 export function notesInbox(userId: string): NotesEntry[] {
   notifyOnce(userId, 'freenotes-connected');
+  return [...homeworkInbox(userId), ...summaryInbox(userId)];
+}
+
+function homeworkInbox(userId: string): NotesEntry[] {
   const user = getUser(userId)!;
   const from = addDays(todayIn(user.timeZone), -14);
   return db.prepare(`SELECT i.id, i.subject, i.title, i.page, i.exercises, i.due, i.notes AS text, i.updated_at AS created
@@ -36,6 +47,10 @@ export function notesInbox(userId: string): NotesEntry[] {
 }
 
 export function ackNotesEntry(userId: string, itemId: string, notebook: string | null, page: number | null): boolean {
+  if (db.prepare('SELECT 1 FROM notes_summaries WHERE user_id = ? AND id = ?').get(userId, itemId)) {
+    db.prepare('UPDATE notes_summaries SET delivered_at = ? WHERE id = ?').run(now(), itemId);
+    return true;
+  }
   const owned = db.prepare('SELECT 1 FROM items WHERE user_id = ? AND id = ?').get(userId, itemId);
   if (!owned) return false;
   db.prepare('INSERT OR REPLACE INTO notes_deliveries (user_id, item_id, delivered_at, notebook, page) VALUES (?, ?, ?, ?, ?)')

@@ -21,6 +21,8 @@ import { registerUniRoutes } from './uni/routes.ts';
 import { gradeSummary, uniHints, uniReminders } from './uni/hooks.ts';
 import { hasFeed, icsLessons, refreshTimetable } from './uni/uni.ts';
 import { CARD_MIGRATIONS } from './cards/migrations.ts';
+import { SUMMARY_MIGRATIONS } from './summaries/migrations.ts';
+import { registerSummaryRoutes } from './summaries/routes.ts';
 import { registerCardRoutes } from './cards/routes.ts';
 import { CARD_TOOLS, cardBriefing, cardNudges } from './cards/hooks.ts';
 
@@ -29,6 +31,7 @@ const str = (v: unknown, max = 4000) => (typeof v === 'string' ? v.slice(0, max)
 function registerSchoolRoutes(api: FastifyInstance) {
   registerUniRoutes(api);
   registerCardRoutes(api);
+  registerSummaryRoutes(api);
   // ----- Schulbücher (digi4school, scook) -----
   const provider = (p: string): BookProvider => {
     if (!(p in PROVIDERS)) throw new HttpError(404, 'Unbekannter Anbieter');
@@ -287,7 +290,7 @@ export const studentsPlugin: EditionPlugin = {
   },
 
   hints: (user, lb) => [...schoolHints(user, lb), ...uniHints(user, lb)],
-  migrations: [...UNI_MIGRATIONS, ...CARD_MIGRATIONS],
+  migrations: [...UNI_MIGRATIONS, ...CARD_MIGRATIONS, ...SUMMARY_MIGRATIONS],
   reminders: uniReminders,
 
   briefing: {
