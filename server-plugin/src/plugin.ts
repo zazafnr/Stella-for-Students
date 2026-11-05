@@ -15,6 +15,7 @@ import { lessonsFor, nextLessonDate, syncUntis, testUntis, type UntisCredentials
 import { solveHomework } from './homework.ts';
 import { saveFile } from './runtime.ts';
 import { SCHOOL_PARSER } from './parser-words.ts';
+import { STUDENTS_CATALOG } from './catalog.ts';
 
 const str = (v: unknown, max = 4000) => (typeof v === 'string' ? v.slice(0, max) : '');
 
@@ -236,6 +237,7 @@ export const studentsPlugin: EditionPlugin = {
   routes: registerSchoolRoutes,
   tools: TOOLS,
   parser: SCHOOL_PARSER,
+  catalog: STUDENTS_CATALOG,
   actions: {
     groups: {
       homework: { label: 'HÜs lösen', help: 'lösen und in deiner Handschrift ins Heft schreiben', default: 'auto', levels: ['auto', 'notify', 'ask', 'never'] },

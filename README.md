@@ -51,7 +51,7 @@ Entwickeln gegen den eigenen Spiegel:
 cd Stella-for-Students
 npm install
 npm run sync:core            # Kern-Spiegel aus ../Stella-Life-Assistent erzeugen
-npm run dev -w web           # Studenten-Web-App
+npm run dev           # Studenten-Web-App
 ```
 
 Prüfen:

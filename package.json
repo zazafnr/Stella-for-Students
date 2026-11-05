@@ -1,18 +1,27 @@
 {
   "name": "stella-for-students",
   "private": true,
-  "description": "Stella for Students – Edition-Plugin, Web-App und iOS-App für Schule, Lehre und Studium.",
-  "workspaces": ["core/shared", "core/server", "server-plugin", "web"],
+  "description": "Stella for Students \u2013 Edition-Plugin, Web-App und iOS-App f\u00fcr Schule, Lehre und Studium.",
+  "workspaces": [
+    "core/shared",
+    "core/server",
+    "server-plugin",
+    "web"
+  ],
   "scripts": {
     "sync:core": "tsx scripts/sync-core.ts",
-    "dev": "npm run dev -w web",
+    "dev": "npm run dev -w @stella/students-web",
     "typecheck": "tsc -p server-plugin && tsc -p web",
-    "test": "npm test -w @stella/students-plugin"
+    "test": "npm test -w @stella/students-plugin",
+    "build": "npm run build -w @stella/students-web",
+    "ui-check": "node scripts/ui-check/students.cjs"
   },
   "devDependencies": {
     "@types/node": "^22.18.0",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3"
   },
-  "engines": { "node": ">=22" }
+  "engines": {
+    "node": ">=22"
+  }
 }

@@ -1,0 +1,21 @@
+{
+ "nav.learn": "Lernen",
+ "learn.week.title": "Lernplan der Woche",
+ "learn.week.empty": "Diese Woche sind keine Lerneinheiten geplant. Sag mir, wann die nächste Prüfung ist, dann plane ich sie.",
+ "learn.week.today": "Heute",
+ "learn.exams.title": "Prüfungen und Stoff",
+ "learn.exams.none": "Keine Prüfungen in Sicht.",
+ "learn.exams.daysLeft#one": "in {count} Tag",
+ "learn.exams.daysLeft#other": "in {count} Tagen",
+ "learn.exams.today": "heute",
+ "learn.exams.noMaterial": "Der Stoff fehlt noch – sag mir, was drankommt.",
+ "learn.exams.sessions": "{done} von {total} Lerneinheiten erledigt",
+ "learn.cards.title": "Lernkarten",
+ "learn.cards.soon": "Lernkarten mit Wiederholungsrhythmus kommen.",
+ "learn.notes.title": "Mitschriften aus Fotos",
+ "learn.notes.soon": "Foto von der Tafel oder vom Heft – Stella fasst es zusammen. Kommt bald.",
+ "students.name": "Stella for Students",
+ "planner.subjects": "Fächer",
+ "planner.allSubjects": "Alle Fächer",
+ "today.todayAtSchool": "Heute in der Schule"
+}

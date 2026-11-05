@@ -1,0 +1,23 @@
+{
+ "nav.learn": "Nauka",
+ "learn.week.title": "Plan nauki na ten tydzień",
+ "learn.week.empty": "W tym tygodniu nie zaplanowano nauki. Powiedz mi, kiedy jest sprawdzian, a go zaplanuję.",
+ "learn.week.today": "Dziś",
+ "learn.exams.title": "Sprawdziany i materiał",
+ "learn.exams.none": "Żadnych sprawdzianów w zasięgu wzroku.",
+ "learn.exams.daysLeft#one": "za {count} dzień",
+ "learn.exams.daysLeft#few": "za {count} dni",
+ "learn.exams.daysLeft#many": "za {count} dni",
+ "learn.exams.daysLeft#other": "za {count} dnia",
+ "learn.exams.today": "dziś",
+ "learn.exams.noMaterial": "Brakuje jeszcze materiału – powiedz, co będzie na sprawdzianie.",
+ "learn.exams.sessions": "{done} z {total} sesji nauki za nami",
+ "learn.cards.title": "Fiszki",
+ "learn.cards.soon": "Fiszki z powtórkami rozłożonymi w czasie już wkrótce.",
+ "learn.notes.title": "Notatki ze zdjęć",
+ "learn.notes.soon": "Zrób zdjęcie tablicy lub zeszytu, a Stella to streści. Wkrótce.",
+ "students.name": "Stella for Students",
+ "planner.subjects": "Przedmioty",
+ "planner.allSubjects": "Wszystkie przedmioty",
+ "today.todayAtSchool": "Dziś w szkole"
+}

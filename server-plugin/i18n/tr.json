@@ -1,0 +1,21 @@
+{
+ "nav.learn": "Çalış",
+ "learn.week.title": "Bu haftanın çalışma planı",
+ "learn.week.empty": "Bu hafta planlanmış çalışma yok. Sınavın ne zaman olduğunu söyle, ben planlayayım.",
+ "learn.week.today": "Bugün",
+ "learn.exams.title": "Sınavlar ve konular",
+ "learn.exams.none": "Yakında sınav yok.",
+ "learn.exams.daysLeft#one": "{count} gün sonra",
+ "learn.exams.daysLeft#other": "{count} gün sonra",
+ "learn.exams.today": "bugün",
+ "learn.exams.noMaterial": "Konular henüz eksik – neyin çıkacağını söyle.",
+ "learn.exams.sessions": "{total} çalışmadan {done} tanesi tamam",
+ "learn.cards.title": "Bilgi kartları",
+ "learn.cards.soon": "Aralıklı tekrarlı bilgi kartları geliyor.",
+ "learn.notes.title": "Fotoğraftan notlar",
+ "learn.notes.soon": "Tahtanın veya defterin fotoğrafını çek, Stella özetlesin. Yakında.",
+ "students.name": "Stella for Students",
+ "planner.subjects": "Dersler",
+ "planner.allSubjects": "Tüm dersler",
+ "today.todayAtSchool": "Bugün okulda"
+}

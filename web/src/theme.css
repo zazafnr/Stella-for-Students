@@ -1,0 +1,51 @@
+/* Stella for Students – hell, kräftig: Violett, warmes Gelb für Fristen, Grün für Erledigtes. Gemeinsame Bausteine lesen nur diese Variablen. */
+:root {
+  --bg: #F7F5FF;
+  --surface: #FFFFFF;
+  --surface-2: #F0ECFF;
+  --tint: #EFEAFF;
+  --sky: #DCD2FF;
+  --text: #1B1340;
+  --text-2: #3A2F6B;
+  --muted: #6A6290;
+  --faint: #9A93B8;
+  --border: rgba(27, 19, 64, .09);
+  --border-strong: rgba(27, 19, 64, .18);
+  --shadow: 0 8px 24px rgba(109, 74, 255, .09);
+  --shadow-lg: 0 20px 40px rgba(109, 74, 255, .18);
+  --blue: #6D4AFF;
+  --blue-2: #8F74FF;
+  --blue-light: #C2B3FF;
+  --green: #138A4B;
+  --green-stroke: #34C77B;
+  --green-tint: #E3F7EA;
+  --danger: #C62D4E;
+  --radius: 26px;
+  --ease: cubic-bezier(.2, .8, .2, 1);
+  --spring: cubic-bezier(.3, 1.3, .5, 1);
+  --tabbar-h: 64px;
+  --hero-from: #DCD2FF; --hero-via: #EDE8FF; --hero-to: #FFF1CC;
+  --pink: #E8548C; --pink-text: #B3235F; --pink-tint: #FFE6F0;
+  /* Fristen und Hinweise */
+  --deadline: #FFC94A;
+  --deadline-text: #7A5200;
+  --deadline-tint: #FFF4D6;
+  color-scheme: light;
+}
+
+/* Kräftigere Überschriften und größere, runde Karten */
+.display { font-weight: 800; }
+h1.display { font-size: 34px; }
+h2 { font-weight: 800; }
+.card { border-radius: var(--radius); }
+.pill.deadline { background: var(--deadline-tint); color: var(--deadline-text); }
+
+/* Fächer bekommen je eine Farbe (wie in FreeNotes): --subject wird pro Eintrag gesetzt */
+.subject-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--subject, var(--blue)); margin-right: 6px; vertical-align: baseline; }
+.subject-chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px; border: 1.5px solid var(--border-strong); background: var(--surface); font-size: 13px; font-weight: 600; color: var(--text-2); cursor: pointer; }
+.subject-chip[aria-pressed='true'] { background: var(--subject, var(--blue)); border-color: transparent; color: #fff; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.learn-section { margin-bottom: 28px; }
+.learn-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 18px; background: var(--surface); box-shadow: var(--shadow); margin-bottom: 8px; border-left: 5px solid var(--subject, var(--blue)); }
+.learn-row .when { min-width: 72px; font-weight: 700; color: var(--text-2); }
+.learn-soon { border: 2px dashed var(--border-strong); border-radius: var(--radius); padding: 18px; color: var(--muted); background: transparent; }
