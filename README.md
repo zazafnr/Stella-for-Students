@@ -23,14 +23,14 @@ Die Begriffe sind überall gleich: **Edition** (`life` oder `students`), **Editi
 core/             READ-ONLY Spiegel von Stella-Life-Assistent (Kern-Spiegel) – nie von Hand ändern
 server-plugin/    das Edition-Plugin: WebUntis, Bücher, HÜ-Autopilot, Handschrift, FreeNotes, Uni, Lernkarten …
 web/              die Studenten-Web-App (eigene Shell, eigenes Theme, eigene Tabs)
-ios/              die Studenten-iOS-App
-site-src/         Bausteine für evolsior.com/stella-students
+ios/              Platz für die Studenten-iOS-App (noch nicht gebaut, siehe Bericht)
 docs/             Plan und Aufbau
 ```
 
 - **Änderungen am Kern** (Parser, Aktionen, Lagebild, Abos, gemeinsame Oberflächen) passieren **immer** in
   `Stella-Life-Assistent`. Danach `npm run sync:core` hier ausführen.
-- Ausgeliefert wird immer `Stella-Life-Assistent`; dieses Repo hängt dort als Submodul unter `editions/students`.
+- Ausgeliefert wird immer `Stella-Life-Assistent`; es holt dieses Repo beim Bauen nach `editions/students` (`scripts/fetch-edition.sh`, kein Git-Submodul). Die Web-App baut dort `npm run build:students`.
+- Die Website `evolsior.com/stella-students` liegt im Kern-Repo (`site-src/students.body.html`).
 - Ohne dieses Plugin läuft das normale Stella vollständig.
 
 Der Plan für diese Aufteilung steht in [`docs/plan/stella-students.md`](docs/plan/stella-students.md)
@@ -60,5 +60,5 @@ Prüfen:
 npm run sync:core -- --check && npx tsc -p server-plugin --noEmit && npx tsc -p web --noEmit && npm test
 ```
 
-Der Stand der Arbeit steht in Paketen im Plan; offene Aufgaben für den Betreiber (Apple-Konto, Stripe-Preise, DNS)
-kommen am Ende in `docs/plan/stella-students-bericht.md`.
+Der Stand der Arbeit, die offenen Punkte und die Aufgaben für den Betreiber (Apple-Konto, Stripe-Preise, DNS)
+stehen in [`docs/plan/stella-students-bericht.md`](docs/plan/stella-students-bericht.md).

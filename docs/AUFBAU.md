@@ -13,8 +13,9 @@ Begriffe: **Edition** (`life` / `students`), **Edition-Plugin** (`server-plugin/
 | `core/` | **Kern-Spiegel**: Kopie von `shared/`, `server/`, (`web-core/` ab Paket 4), iOS `Core/` und `Design/` aus dem Kern. `core/CORE_COMMIT` nennt den gespiegelten Commit. | **Niemand von Hand.** Nur `npm run sync:core`. |
 | `server-plugin/` | das Edition-Plugin: WebUntis, Schulbücher, HÜ-Autopilot, Handschrift, FreeNotes, Uni, Lernkarten, Mitschriften | hier |
 | `web/` | die Studenten-Web-App | hier |
-| `ios/` | die Studenten-iOS-App | hier |
-| `site-src/` | Bausteine für `evolsior.com/stella-students` | hier |
+| `ios/` | Platz für die Studenten-iOS-App (noch nicht gebaut) | hier |
+
+Die Website `evolsior.com/stella-students` wird im Kern gebaut (`site-src/students.body.html`, `scripts/build-site.py`).
 
 ## Warum eine Kopie?
 
