@@ -76,8 +76,15 @@ jobs:
         working-directory: ios/StellaStudents.swiftpm
         run: |
           set -o pipefail
+          # Der Scheme-Name entsteht aus dem Produktnamen („Stella for Students“) und kann Bindestriche statt Leerzeichen haben
+          SCHEME=$(xcodebuild -list -json 2>/dev/null | python3 -c '
+          import json, sys
+          d = json.load(sys.stdin)
+          s = (d.get("workspace") or d.get("project") or {}).get("schemes", [])
+          print(next((x for x in s if "tudents" in x and not x.endswith("Tests")), s[0] if s else "StellaStudents"))')
+          echo "Scheme: $SCHEME"
           xcodebuild build \
-            -scheme 'Stella for Students' \
+            -scheme "$SCHEME" \
             -destination 'id=${{ steps.sim.outputs.udid }}' \
             -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO \
