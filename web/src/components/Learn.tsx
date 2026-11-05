@@ -1,6 +1,6 @@
-import { useMemo, type CSSProperties } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { addDays, diffDays, formatDateDe, todayIn, type Item } from '@stella/shared';
-import { useStore } from '@stella/web-core/store.ts';
+import { api, useStore } from '@stella/web-core/store.ts';
 import { useT } from '@stella/web-core/i18n.ts';
 import { Icon } from '@stella/web-core/ui/Icon.tsx';
 import { subjectColor } from '../subjectColor.ts';
@@ -11,6 +11,8 @@ export function Learn() {
   const items = useStore((s) => s.items);
   const tz = useStore((s) => s.me?.timeZone) ?? 'Europe/Vienna';
   const today = todayIn(tz);
+  const [avg, setAvg] = useState<{ average: number | null; count: number; ects: number } | null>(null);
+  useEffect(() => { void api<{ average: number | null; count: number; ects: number }>('/api/students/grades/average').then(setAvg).catch(() => {}); }, []);
 
   const all = useMemo(() => Object.values(items).filter((i) => !i.deleted && i.status !== 'cancelled'), [items]);
   const sessions = useMemo(
@@ -64,6 +66,13 @@ export function Learn() {
             );
           })}
         </section>
+
+        {avg && avg.count > 0 && (
+          <section className="learn-section" aria-labelledby="learn-grades">
+            <h2 id="learn-grades">{t('uni.grades')}</h2>
+            <div className="learn-row"><strong style={{ fontSize: 22 }}>{avg.average?.toLocaleString()}</strong><span className="muted" style={{ flex: 1 }}>{t('uni.average')} · {t('uni.ects', { count: avg.ects })}</span></div>
+          </section>
+        )}
 
         <section className="learn-section" aria-labelledby="learn-cards">
           <h2 id="learn-cards">{t('learn.cards.title')}</h2>

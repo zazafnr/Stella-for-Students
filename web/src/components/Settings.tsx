@@ -11,6 +11,7 @@ import { Copy, Section, useAction } from '@stella/web-core/components/settings/u
 import { Books } from './settings/Books.tsx';
 import { Mail } from '@stella/web-core/components/settings/Mail.tsx';
 import { Untis } from './settings/Untis.tsx';
+import { UniSettings } from './settings/Uni.tsx';
 import { Handwriting } from './settings/Handwriting.tsx';
 import { Server } from '@stella/web-core/components/settings/Server.tsx';
 import { PlanSheet } from '@stella/web-core/components/settings/Plan.tsx';
@@ -20,7 +21,7 @@ import { Icon, type IconName } from '@stella/web-core/ui/Icon.tsx';
 import { Sheet, StarMark, Switch, showToast } from '@stella/web-core/ui/Decor.tsx';
 import { VERSION } from '@stella/web-core/version.ts';
 
-type SheetId = 'plan' | 'telegram' | 'news' | 'books' | 'untis' | 'mail' | 'notes' | 'health' | 'notify' | 'ai' | 'perms' | 'memory' | 'log' | 'server' | 'addresses' | 'delete';
+type SheetId = 'uni' | 'plan' | 'telegram' | 'news' | 'books' | 'untis' | 'mail' | 'notes' | 'health' | 'notify' | 'ai' | 'perms' | 'memory' | 'log' | 'server' | 'addresses' | 'delete';
 
 interface CostSummary { totalMicroUsd: number; requests: number }
 interface AiStatusData {
@@ -56,6 +57,7 @@ export function Settings({ back, openOnboarding, openPlan }: { back: () => void;
       sub: bookCount ? me.settings.books!.map((b) => b.subject).join(', ') : t('settings.booksSub'),
       status: booksConnected && bookCount ? [t('settings.connected'), 'ok'] : booksConnected ? [t('settings.subjectMissing'), 'warn'] : [t('settings.setUp'), 'todo'],
     },
+    { id: 'uni', icon: 'school', tile: 'blue', title: t('uni.title'), sub: t('uni.sub'), status: [t('settings.setUp'), 'todo'] },
     { id: 'untis', icon: 'school', tile: 'blue', title: 'WebUntis', sub: t('settings.untisSub'), status: i.webuntis ? [t('settings.connected'), 'ok'] : [t('settings.setUp'), 'todo'] },
     {
       id: 'mail', icon: 'mail', tile: 'teal', title: t('settings.email'), sub: i.mailAccounts ? t('settings.mailboxes', { count: i.mailAccounts }) : t('settings.mailSub'),
@@ -80,6 +82,7 @@ export function Settings({ back, openOnboarding, openPlan }: { back: () => void;
   const school = meIsSchool(me);
   const visibleRows = rows.filter((r) => {
     if (r.id === 'books' || r.id === 'untis' || r.id === 'notes') return school;
+    if (r.id === 'uni') return true;
     if (r.id === 'mail') return meHas(me, 'mails');
     if (r.id === 'health') return meHas(me, 'health');
     return true;
@@ -229,6 +232,7 @@ export function Settings({ back, openOnboarding, openPlan }: { back: () => void;
       {sheet === 'news' && <Sheet title={t('settings.news.title')} onClose={() => setSheet(null)}><NewsSettings /></Sheet>}
       {sheet === 'telegram' && <Sheet title={t('settings.telegram.title')} onClose={() => setSheet(null)}><TelegramSheet /></Sheet>}
       {sheet === 'books' && <Sheet title={t('settings.books')} onClose={() => setSheet(null)}><Books me={me} /></Sheet>}
+      {sheet === 'uni' && <Sheet title={t('uni.title')} onClose={() => setSheet(null)}><UniSettings /></Sheet>}
       {sheet === 'untis' && <Sheet title="WebUntis" onClose={() => setSheet(null)}><Untis me={me} /></Sheet>}
       {sheet === 'mail' && <Sheet title={t('settings.email')} onClose={() => setSheet(null)}><Mail me={me} /></Sheet>}
       {sheet === 'notes' && <Sheet title={t('settings.notesTitle')} onClose={() => setSheet(null)}><Handwriting me={me} /></Sheet>}
