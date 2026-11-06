@@ -97,5 +97,6 @@
  "notes.failed": "Non ha funzionato: {error}",
  "notes.delete": "Elimina",
  "notes.examPick": "Quale esame?",
- "notes.none": "Ancora nessun appunto."
+ "notes.none": "Ancora nessun appunto.",
+ "students.hint.sendPhoto": "Invia una foto"
 }

@@ -97,5 +97,6 @@
  "notes.failed": "Das hat nicht geklappt: {error}",
  "notes.delete": "Löschen",
  "notes.examPick": "Welche Prüfung?",
- "notes.none": "Noch keine Mitschriften."
+ "notes.none": "Noch keine Mitschriften.",
+ "students.hint.sendPhoto": "Foto schicken"
 }

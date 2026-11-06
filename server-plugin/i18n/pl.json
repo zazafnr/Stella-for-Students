@@ -103,5 +103,6 @@
  "notes.failed": "Nie udało się: {error}",
  "notes.delete": "Usuń",
  "notes.examPick": "Który sprawdzian?",
- "notes.none": "Brak notatek."
+ "notes.none": "Brak notatek.",
+ "students.hint.sendPhoto": "Wyślij zdjęcie"
 }

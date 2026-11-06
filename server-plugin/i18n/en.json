@@ -97,5 +97,6 @@
  "notes.failed": "That did not work: {error}",
  "notes.delete": "Delete",
  "notes.examPick": "Which exam?",
- "notes.none": "No notes yet."
+ "notes.none": "No notes yet.",
+ "students.hint.sendPhoto": "Send a photo"
 }
