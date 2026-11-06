@@ -1,0 +1,120 @@
+# XcodeGen: erzeugt StellaStudents.xcodeproj (in der CI, nicht eingecheckt).
+#   brew install xcodegen && xcodegen generate --spec ios/project.yml
+#
+# Das Projekt nutzt DIESELBEN Quelldateien wie StellaStudents.swiftpm (App, Core, Design, Views) und ergänzt die Bildschirmzeit:
+#   · StellaStudentsActivityMonitor  – DeviceActivityMonitor-Erweiterung (Schwellen, lokale Mitteilung, Sperre)
+#   · StellaStudentsActivityReport   – DeviceActivityReport-Erweiterung (Bildschirmzeit anzeigen)
+#   · App Group group.app.stella.students.ios, Entitlement com.apple.developer.family-controls, Associated Domains (Anmelde-Link)
+# Die Bildschirmzeit-Teile der App stehen hinter `#if canImport(FamilyControls) && STELLA_SCREENTIME`; StellaStudents.swiftpm baut in Swift Playgrounds ohne sie.
+#
+# Zum Signieren: in Xcode unter „Signing & Capabilities“ das Team wählen (Team-ID aus dem Apple-Developer-Konto) – für alle drei Ziele.
+# Family Controls (Distribution) muss bei Apple beantragt sein, sonst bleibt Bildschirmzeit im TestFlight- und App-Store-Build aus.
+name: StellaStudents
+options:
+  bundleIdPrefix: app.stella.students
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+targets:
+  StellaStudents:
+    type: application
+    platform: iOS
+    supportedDestinations: [iOS]
+    sources:
+      - path: StellaStudents.swiftpm/App
+      - path: StellaStudents.swiftpm/Core
+      - path: StellaStudents.swiftpm/Design
+      - path: StellaStudents.swiftpm/Views
+      - path: StellaStudents.swiftpm/Assets.xcassets
+      - path: Resources
+        buildPhase: resources
+    dependencies:
+      - target: StellaStudentsActivityMonitor
+      - target: StellaStudentsActivityReport
+    entitlements:
+      path: StellaStudents.entitlements
+    info:
+      path: StellaStudents-Info.plist
+      properties:
+        CFBundleDisplayName: Stella for Students
+        StellaEdition: students
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
+        UIApplicationSceneManifest: { UIApplicationSupportsMultipleScenes: false }
+        # englische Standardtexte; die Übersetzungen liegen in Resources/<sprache>.lproj/InfoPlist.strings (scripts/gen-infoplist.ts)
+        NSCameraUsageDescription: Take photos of worksheets, the board and notebook entries so Stella can read them.
+        NSPhotoLibraryUsageDescription: Choose photos of worksheets and notes for Stella.
+        NSMotionUsageDescription: Stella counts your steps for your daily goal.
+        NSMicrophoneUsageDescription: Stella records your voice messages so you do not have to type.
+        NSLocationWhenInUseUsageDescription: "Stella uses your location only while you use the app: to show shops and pharmacies nearby for your errands, to find restaurants and prepare reservations, and to add weather and local news to your morning briefing. Your exact location is not stored."
+        CFBundleLocalizations: [en, de, es, fr, it, pt-BR, tr, pl]
+        CFBundleDevelopmentRegion: en
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.stella.students.ios
+        TARGETED_DEVICE_FAMILY: "1,2"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) STELLA_SCREENTIME"
+  StellaStudentsActivityMonitor:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: Extensions/StellaStudentsActivityMonitor
+        excludes: ["Info.plist", "*.entitlements"]
+      - path: StellaStudents.swiftpm/Core/ScreenTime.swift
+    entitlements:
+      path: Extensions/StellaStudentsActivityMonitor/StellaStudentsActivityMonitor.entitlements
+    info:
+      path: Extensions/StellaStudentsActivityMonitor/Info.plist
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.stella.students.ios.activity-monitor
+        INFOPLIST_FILE: Extensions/StellaStudentsActivityMonitor/Info.plist
+        SKIP_INSTALL: YES
+  StellaStudentsActivityReport:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: Extensions/StellaStudentsActivityReport
+        excludes: ["Info.plist", "*.entitlements"]
+    entitlements:
+      path: Extensions/StellaStudentsActivityReport/StellaStudentsActivityReport.entitlements
+    info:
+      path: Extensions/StellaStudentsActivityReport/Info.plist
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.stella.students.ios.activity-report
+        INFOPLIST_FILE: Extensions/StellaStudentsActivityReport/Info.plist
+        SKIP_INSTALL: YES
+  StellaStudentsTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: Tests
+      - path: StellaStudents.swiftpm/Core/ScreenTime.swift
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.stella.students.ios.tests
+        GENERATE_INFOPLIST_FILE: YES
+schemes:
+  StellaStudentsTests:
+    build:
+      targets:
+        StellaStudentsTests: all
+    test:
+      targets: [StellaStudentsTests]
+  StellaStudents:
+    build:
+      targets:
+        StellaStudents: all
+        StellaStudentsActivityMonitor: all
+        StellaStudentsActivityReport: all
+    run:
+      config: Debug

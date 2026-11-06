@@ -1,0 +1,15 @@
+{
+  "name": "@stella/students-plugin",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Edition-Plugin „students“: wird vom Stella-Server geladen (STELLA_EDITION_STUDENTS).",
+  "main": "index.ts",
+  "scripts": {
+    "test": "STELLA_DEFAULT_LOCALE=de STELLA_DEFAULT_PLAN=max node --import tsx --test --test-timeout=60000 \"src/**/*.test.ts\""
+  },
+  "dependencies": {
+    "@stella/server": "*",
+    "@stella/shared": "*"
+  }
+}

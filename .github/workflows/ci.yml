@@ -1,0 +1,38 @@
+name: CI
+
+# Stella for Students: Spiegel-Prüfung, Typprüfung, Plugin-Tests. Der Kern (Stella-Life-Assistent) wird auf dem Stand
+# ausgecheckt, der in core/CORE_COMMIT steht – so lässt sich prüfen, dass im Spiegel niemand von Hand gearbeitet hat.
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Kern auf dem gespiegelten Stand auschecken
+        id: core
+        run: echo "commit=$(sed 's/-dirty$//' core/CORE_COMMIT)" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        with:
+          repository: zazafnr/Stella-Life-Assistent
+          ref: ${{ steps.core.outputs.commit }}
+          path: _core-src
+
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm ci --no-audit --no-fund
+      - name: Kern-Spiegel unverändert?
+        run: STELLA_CORE_PATH=_core-src npm run sync:core -- --check
+      - name: iOS-Kopie und Texte aktuell?
+        run: scripts/sync-ios.sh --check && npx tsx scripts/gen-ios-catalogs.ts --check
+      - run: npx tsc -p server-plugin --noEmit && npx tsc -p web --noEmit
+      - run: npx playwright install --with-deps chromium
+      - run: npm test
