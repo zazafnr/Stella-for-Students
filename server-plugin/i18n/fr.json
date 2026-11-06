@@ -98,5 +98,7 @@
  "notes.delete": "Supprimer",
  "notes.examPick": "Quel examen ?",
  "notes.none": "Pas encore de notes.",
- "students.hint.sendPhoto": "Envoyer une photo"
+ "students.hint.sendPhoto": "Envoyer une photo",
+ "students.auto.homework": "Pilote automatique des devoirs",
+ "students.auto.homework.when": "dès qu’il y a une photo ou un livre"
 }

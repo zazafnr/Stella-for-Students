@@ -98,5 +98,7 @@
  "notes.delete": "Löschen",
  "notes.examPick": "Welche Prüfung?",
  "notes.none": "Noch keine Mitschriften.",
- "students.hint.sendPhoto": "Foto schicken"
+ "students.hint.sendPhoto": "Foto schicken",
+ "students.auto.homework": "HÜ-Autopilot",
+ "students.auto.homework.when": "sobald ein Foto oder Buch da ist"
 }

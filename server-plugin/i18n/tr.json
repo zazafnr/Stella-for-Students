@@ -98,5 +98,7 @@
  "notes.delete": "Sil",
  "notes.examPick": "Hangi sınav?",
  "notes.none": "Henüz not yok.",
- "students.hint.sendPhoto": "Fotoğraf gönder"
+ "students.hint.sendPhoto": "Fotoğraf gönder",
+ "students.auto.homework": "Ödev otopilotu",
+ "students.auto.homework.when": "bir fotoğraf ya da kitap olur olmaz"
 }
