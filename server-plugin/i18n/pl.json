@@ -104,5 +104,7 @@
  "notes.delete": "Usuń",
  "notes.examPick": "Który sprawdzian?",
  "notes.none": "Brak notatek.",
- "students.hint.sendPhoto": "Wyślij zdjęcie"
+ "students.hint.sendPhoto": "Wyślij zdjęcie",
+ "students.auto.homework": "Autopilot zadań",
+ "students.auto.homework.when": "gdy tylko pojawi się zdjęcie lub książka"
 }

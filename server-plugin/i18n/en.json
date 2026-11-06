@@ -98,5 +98,7 @@
  "notes.delete": "Delete",
  "notes.examPick": "Which exam?",
  "notes.none": "No notes yet.",
- "students.hint.sendPhoto": "Send a photo"
+ "students.hint.sendPhoto": "Send a photo",
+ "students.auto.homework": "Homework autopilot",
+ "students.auto.homework.when": "as soon as a photo or book is there"
 }

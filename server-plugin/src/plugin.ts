@@ -311,7 +311,7 @@ export const studentsPlugin: EditionPlugin = {
     },
   },
 
-  stellaPlan: (user) => (isSchool(user) && hasFeature(user, 'homework') ? [{ key: 'perm:homework', title: 'HÜ-Autopilot', when: 'sobald ein Foto oder Buch da ist' }] : []),
+  stellaPlan: (user) => (isSchool(user) && hasFeature(user, 'homework') ? [{ key: 'perm:homework', title: tr(user, 'students.auto.homework'), when: tr(user, 'students.auto.homework.when') }] : []),
 
   quickActions: () => [
     { id: 'photo', icon: 'camera', symbol: 'camera.fill', kind: 'camera', needs: 'homework', after: 'briefing' },

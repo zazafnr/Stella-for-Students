@@ -98,5 +98,7 @@
  "notes.delete": "Excluir",
  "notes.examPick": "Qual prova?",
  "notes.none": "Ainda não há anotações.",
- "students.hint.sendPhoto": "Enviar uma foto"
+ "students.hint.sendPhoto": "Enviar uma foto",
+ "students.auto.homework": "Piloto automático da lição",
+ "students.auto.homework.when": "assim que houver uma foto ou um livro"
 }
