@@ -182,7 +182,7 @@ function schoolHints(user: User, lb: Lagebild): NonNullable<ReturnType<NonNullab
   if (afternoon && isSchool(user) && levelFor(user, 'homework') !== 'never') {
     for (const hw of dueTomorrow.filter((i) => i.kind === 'homework')) {
       if (hw.attachments.length || (hw.page && bookFor(user, hw.subject))) continue;
-      out.push({ key: `no_source:${hw.id}`, priority: 'high', itemId: hw.id, text: v.hintNoSource(hw.title), open: { tab: 'chat', label: 'Foto schicken' } });
+      out.push({ key: `no_source:${hw.id}`, priority: 'high', itemId: hw.id, text: v.hintNoSource(hw.title), open: { tab: 'chat', label: tr(user, 'students.hint.sendPhoto') } });
     }
   }
   return out;

@@ -97,5 +97,6 @@
  "notes.failed": "Olmadı: {error}",
  "notes.delete": "Sil",
  "notes.examPick": "Hangi sınav?",
- "notes.none": "Henüz not yok."
+ "notes.none": "Henüz not yok.",
+ "students.hint.sendPhoto": "Fotoğraf gönder"
 }

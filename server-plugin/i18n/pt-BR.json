@@ -97,5 +97,6 @@
  "notes.failed": "Não deu certo: {error}",
  "notes.delete": "Excluir",
  "notes.examPick": "Qual prova?",
- "notes.none": "Ainda não há anotações."
+ "notes.none": "Ainda não há anotações.",
+ "students.hint.sendPhoto": "Enviar uma foto"
 }

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
-import { addDays, diffDays, formatDateDe, todayIn, type Item } from '@stella/shared';
+import { addDays, diffDays, formatDay, todayIn, type Item } from '@stella/shared';
 import { api, useStore } from '@stella/web-core/store.ts';
-import { useT } from '@stella/web-core/i18n.ts';
+import { useT, useLocale } from '@stella/web-core/i18n.ts';
 import { Icon } from '@stella/web-core/ui/Icon.tsx';
 import { subjectColor } from '../subjectColor.ts';
 import { Cards } from './Cards.tsx';
@@ -9,6 +9,7 @@ import { Notes } from './Notes.tsx';
 
 /** „Lernen“: Lernplan der Woche, Prüfungen mit Stoff und Lernstand; Lernkarten und Mitschriften füllen sich in den nächsten Paketen. */
 export function Learn() {
+  const locale = useLocale();
   const t = useT();
   const items = useStore((s) => s.items);
   const tz = useStore((s) => s.me?.timeZone) ?? 'Europe/Vienna';
@@ -43,7 +44,7 @@ export function Learn() {
           {sessions.length === 0 && <p className="muted">{t('learn.week.empty')}</p>}
           {sessions.map((s) => (
             <div key={s.id} className="learn-row" style={style(s.subject)}>
-              <span className="when">{s.due === today ? t('learn.week.today') : formatDateDe(s.due!, today)}{s.time ? ` · ${s.time}` : ''}</span>
+              <span className="when">{s.due === today ? t('learn.week.today') : formatDay(locale, s.due!, today)}{s.time ? ` · ${s.time}` : ''}</span>
               <span style={{ flex: 1 }}>{s.detail ?? s.title}</span>
               {s.status === 'done' && <Icon name="check" size={16} stroke={3} />}
             </div>
