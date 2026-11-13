@@ -9,7 +9,7 @@ import { ItemStatus } from '@stella/web-core/components/ItemStatus.tsx';
 import { subjectColor } from '../subjectColor.ts';
 import { BriefingCard } from '@stella/web-core/components/BriefingCard.tsx';
 import { ListsSheet } from '@stella/web-core/components/Lists.tsx';
-import { WeekBar, amount } from '@stella/web-core/components/Goals.tsx';
+import { GoalRings, WeatherHero } from '@stella/web-core/components/TodayCards.tsx';
 import { euro } from '@stella/web-core/components/Finance.tsx';
 import { StellaPlanCard } from '@stella/web-core/components/StellaPlan.tsx';
 
@@ -96,15 +96,10 @@ export function Today({ go }: { go: (t: Tab) => void }) {
   return (
     <div className="page">
       <div className="page-inner">
-        <header className="hero">
-          <div>
-            <div className="when">{dateLabel}</div>
-            <h1 className="display">{heroTitle}</h1>
-          </div>
-          <div className="actions">
-            <button type="button" className="btn" onClick={() => go('chat')}><Icon name="chat" size={16} />{t('today.tellStella')}</button>
-          </div>
-        </header>
+        <WeatherHero title={heroTitle} dateLabel={dateLabel}
+          actions={<button type="button" className="btn" onClick={() => go('chat')}><Icon name="chat" size={16} />{t('today.tellStella')}</button>} />
+        {/* Ziele als Ringe direkt unter der Begrüßung (Design-Auswahl „Ziele A“) */}
+        <GoalRings goals={goalList} onOpen={() => go('goals')} />
 
         {todayLessons.length > 0 && (
           <section className="card" aria-label={t('today.todayAtSchool')} style={{ marginBottom: 16 }}>
@@ -207,20 +202,6 @@ export function Today({ go }: { go: (t: Tab) => void }) {
               </section>
             )}
 
-            {goalList.length > 0 && (
-              <button type="button" className="card interactive" onClick={() => go('goals')} style={{ display: 'flex', flexDirection: 'column', gap: 12, textAlign: 'left' }}>
-                <span className="panel-head" style={{ margin: 0 }}><h2 className="eyebrow">{t('today.yourGoals')}</h2><Icon name="chevron" size={16} /></span>
-                {goalList.slice(0, 4).map((g) => (
-                  <span key={g.id} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    <span className="row" style={{ justifyContent: 'space-between', fontSize: 14 }}>
-                      <span style={{ fontWeight: 600 }}>{g.title}</span>
-                      <span className="muted small">{amount(g, g.weekValue)} von {amount(g, g.weekTarget)}</span>
-                    </span>
-                    <WeekBar goal={g} />
-                  </span>
-                ))}
-              </button>
-            )}
           </div>
 
           <div>
