@@ -569,7 +569,14 @@ struct NewsEntry: Codable, Hashable, Identifiable {
     /** Vorschaubild (https) und erstes Thema, für das Story-Karussell auf „Heute“ */
     var image: String?
     var topic: String?
+    /** Bildpunkt (x, y je 0–1 von links oben), der beim Zuschneiden sichtbar bleibt – von der KI bestimmt; ohne: Mitte */
+    var focus: NewsFocus?
     var id: String { url }
+}
+
+struct NewsFocus: Codable, Hashable {
+    var x: Double
+    var y: Double
 }
 
 struct Briefing: Codable {
@@ -638,6 +645,17 @@ struct Integrations: Codable, Hashable {
     var handwritingFont: Bool
     var freeNotes: Bool?
     var googleSignIn: Bool?
+
+    /** Bücher, WebUntis und Handschrift schickt nur ein Server mit dem Students-Plugin – ohne sie soll das Profil trotzdem laden */
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        books = try c.decodeIfPresent([String: BookIntegration].self, forKey: .books) ?? [:]
+        webuntis = try c.decodeIfPresent(Bool.self, forKey: .webuntis) ?? false
+        mailAccounts = try c.decodeIfPresent(Int.self, forKey: .mailAccounts) ?? 0
+        handwritingFont = try c.decodeIfPresent(Bool.self, forKey: .handwritingFont) ?? false
+        freeNotes = try c.decodeIfPresent(Bool.self, forKey: .freeNotes)
+        googleSignIn = try c.decodeIfPresent(Bool.self, forKey: .googleSignIn)
+    }
 }
 
 struct ServerFlags: Codable, Hashable {

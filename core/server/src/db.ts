@@ -563,6 +563,23 @@ const MIGRATIONS: string[] = [
    ALTER TABLE items ADD COLUMN location TEXT;`,
   // News: Vorschaubild je Meldung (aus dem Feed oder og:image der Artikelseite)
   `ALTER TABLE news_items ADD COLUMN image TEXT;`,
+  // News: Tagesausgabe (die 15 wichtigsten Meldungen je Land und Tag) und die einmal aufbereiteten Artikel
+  // (Ein-Satz-Fassung je Sprache, Thema von der KI, Bild) – daraus bekommt jede Person ihre passendsten
+  `CREATE TABLE news_edition (
+    country TEXT NOT NULL,
+    date TEXT NOT NULL,
+    urls TEXT NOT NULL,
+    PRIMARY KEY (country, date)
+  );
+  CREATE TABLE news_prepared (
+    url TEXT PRIMARY KEY,
+    topic TEXT,
+    image TEXT,
+    sentences TEXT NOT NULL DEFAULT '{}',
+    prepared_at TEXT NOT NULL
+  );`,
+  // News: Bildpunkt, nach dem die Karte das Bild zuschneidet ("x,y", je 0–1; von der KI bei der Tagesausgabe bestimmt)
+  `ALTER TABLE news_prepared ADD COLUMN focus TEXT;`,
 ];
 
 function migrate() {
